@@ -23,7 +23,7 @@ $("shareButton").addEventListener("click",async()=>{const params=new URLSearchPa
 $("resetConfig").addEventListener("click",()=>{Object.assign(selection,initialSelection);Object.assign(colors,initialColors);yaw=-.38;history.replaceState(null,"",location.pathname);update();});
 $("resetView").addEventListener("click",()=>{yaw=-.38;resizeCanvas();$("viewAngle").textContent="ÖN GÖRÜNÜM";});
 $("summaryButton").addEventListener("click",()=>{$("summaryContent").innerHTML=summaryText().split("\n").map(line=>`<div>${line}</div>`).join("");$("summaryDialog").showModal();});
-$("closeDialog").addEventListener("click",()=>$ ("summaryDialog").close());
+$("closeDialog").addEventListener("click", () => $("summaryDialog").close());
 $("copySummary").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(summaryText());showToast("Özet kopyalandı.");$("summaryDialog").close();}catch{showToast("Kopyalamaya izin verilmedi.");}});
 canvas.addEventListener("pointerdown",event=>{dragging=true;previousX=event.clientX;canvas.setPointerCapture(event.pointerId);});
 canvas.addEventListener("pointermove",event=>{if(!dragging)return;yaw+=(event.clientX-previousX)*.012;previousX=event.clientX;resizeCanvas();$("viewAngle").textContent=yaw>.12?"SAĞ AÇI":yaw<-.12?"SOL AÇI":"ÖN GÖRÜNÜM";});
