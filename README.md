@@ -1,15 +1,14 @@
 # OkForm 🏹
 
-**OkForm**, okçuların olimpik yay parçalarını seçip renklerini deneyebildiği ve montaj uyumunu satın almadan önce kontrol edebildiği bir 3D yapılandırıcı prototipidir.
+OkForm, Türkiye'deki okçuların olimpik yay parçalarını seçip görsel bir yay önizlemesinde deneyebildiği, satıcı ürün sayfalarına bağlanan açık kaynaklı bir prototiptir.
 
-## Özellikler
+## Mevcut özellikler
 
-- Sürükleyerek döndürülebilen, renk ve parça seçimine tepki veren 3D önizleme
-- Gövde, kanat, nişangâh ve kiriş seçimi
-- Renk seçenekleri ve tahmini sepet toplamı
-- ILF / vidalı bağlantı türlerine göre temel uyumluluk kontrolü
-- Bağlantı ve yapılandırma özeti paylaşımı
-- Telefon ve masaüstü için uyumlu arayüz
+- Sürükleyerek döndürülebilen kodla çizilmiş yay önizlemesi
+- Navek'ten gövde, kanat ve nişangâh ürünleri; ürün sayfası bağlantıları ve kontrol edilen fiyatlar
+- Görsel renk denemeleri (satıcının sunduğu renk seçenekleri oldukları iddia edilmez)
+- Bilgi eksik olduğunda “doğrulanamadı” diyen uyumluluk göstergesi
+- Ürün seçimi, fiyat toplamı ve bağlantı paylaşımı
 
 ## Çalıştırma
 
@@ -19,24 +18,25 @@ Node.js 20 veya üzeri ile:
 npm start
 ```
 
-Ardından `http://127.0.0.1:4173` adresini aç. Testler için:
+Ardından `http://127.0.0.1:4173` adresini aç. Kontroller:
 
 ```sh
 npm test
 ```
 
-## Durum
+## Katalog doğruluğu
 
-Bu, ilk arayüz prototipidir. Yay modeli, temel derinlik etkileriyle kodla çizilen hafif bir önizlemedir; üretici CAD modelleri ve doğrulanmış ölçüler geldikçe gerçek parça geometrileriyle değiştirilecektir.
+Ürünler ve fiyatlar 10 Ekim 2026 tarihinde Navek'in herkese açık ürün sayfalarından kontrol edildi. Fiyatlar değişebilir. Ürün sayfalarının görünür içeriğinde satıcı renk varyantları ve bazı gövde/kanat bağlantı standartları doğrulanamadığından uygulama mor tonlu renkleri yalnızca **görsel önizleme** olarak sunar ve belirsiz bağlantı uyumunu onaylamaz. Kiriş kategorisi bağlantısı var; ürün varyantı ve fiyatı henüz katalogda doğrulanmadı.
 
-## Veri doğruluğu
+## Model kapsamı
 
-Şu an katalogdaki ürün adları, fiyatlar ve bağlantılar **arayüz prototipi için örnek veridir**; Navek veya BVE'den alınmış canlı ürün bilgisi değildir. Gerçek kullanım için ürün ölçüleri ve bağlantı bilgileri üretici/satıcı kaynaklarıyla doğrulanmalıdır. Uyumluluk uyarıları da yalnızca bu doğrulanmış veriler kadar güvenilirdir.
+Mevcut önizleme gerçek üretici CAD modeli değildir; canvas üzerinde derinlik hissiyle çizilmiş yaklaşık bir temsildir. Satın almaya uygun gerçek 3D model için satıcı/üretici ölçüleri ve kullanım izni gerekir. Bu nedenle önizleme ürünün tam boyutunu, gerçek rengini veya mekanik uyumunu garanti etmez.
 
 ## Katkı
 
-Ürün kataloğu, ölçüler veya model doğruluğuna katkıda bulunmak için bir issue açabilir ya da pull request gönderebilirsin.
+Doğrulanmış ürün ölçüleri, renk seçenekleri ve CAD dosyaları için issue açabilir veya pull request gönderebilirsin.
 
 ## Lisans
 
-Henüz seçilmedi. Resmî lisans eklenene kadar kodun yeniden kullanım koşulları belirlenmemiştir.
+Henüz seçilmedi. Resmî lisans eklenene kadar yeniden kullanım koşulları belirlenmemiştir.
+
