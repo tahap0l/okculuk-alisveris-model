@@ -27,7 +27,7 @@ npm test
 
 ## Durum
 
-Bu, ilk arayüz prototipidir. 3D sahne şu anda kodla çizilen hafif bir önizlemedir; üretici CAD modelleri ve doğrulanmış ölçüler geldikçe gerçek parça geometrileriyle değiştirilecektir.
+Bu, ilk arayüz prototipidir. Yay modeli, temel derinlik etkileriyle kodla çizilen hafif bir önizlemedir; üretici CAD modelleri ve doğrulanmış ölçüler geldikçe gerçek parça geometrileriyle değiştirilecektir.
 
 ## Veri doğruluğu
 
@@ -39,4 +39,4 @@ Bu, ilk arayüz prototipidir. 3D sahne şu anda kodla çizilen hafif bir önizle
 
 ## Lisans
 
-Henüz seçilmedi.
+Henüz seçilmedi. Resmî lisans eklenene kadar kodun yeniden kullanım koşulları belirlenmemiştir.
