@@ -24,6 +24,10 @@ Ardından `http://127.0.0.1:4173` adresini aç. Kontroller:
 npm test
 ```
 
+## İnternette kullanma
+
+Bu depo, GitHub Actions ile GitHub Pages'e otomatik yayınlanacak şekilde ayarlanmıştır. `main` dalına gönderilen değişiklikler testlerden geçince siteye aktarılır. Yayın adresi: https://tahap0l.github.io/okculuk-alisveris-model/ . İlk yayının hazırlanması birkaç dakika sürebilir.
+
 ## Katalog doğruluğu
 
 Ürünler ve fiyatlar 10 Ekim 2026 tarihinde Navek'in herkese açık ürün sayfalarından kontrol edildi. Fiyatlar değişebilir. Ürün sayfalarının görünür içeriğinde satıcı renk varyantları ve bazı gövde/kanat bağlantı standartları doğrulanamadığından uygulama mor tonlu renkleri yalnızca **görsel önizleme** olarak sunar ve belirsiz bağlantı uyumunu onaylamaz. Kiriş kategorisi bağlantısı var; ürün varyantı ve fiyatı henüz katalogda doğrulanmadı.
