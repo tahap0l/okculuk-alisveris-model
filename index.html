@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#100b20" />
+  <meta name="description" content="Okçuluk yayınızı parçaları ve renkleriyle 3D görünümde yapılandırın." />
+  <title>OkForm — Yayını kendin kur</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="OkForm ana sayfa"><span class="brand-mark">⌁</span><span>ok<span class="brand-light">form</span></span></a>
+    <nav><a class="active" href="#configurator">Konfigüratör</a><a href="#how">Nasıl çalışır?</a><a href="#about">Hakkında</a></nav>
+    <button class="share-button" id="shareButton" type="button"><span aria-hidden="true">↗</span> Yapılandırmayı paylaş</button>
+  </header>
+  <main id="configurator">
+    <section class="intro"><div class="eyebrow"><span></span> TÜRKİYE'NİN OKÇULUK KONFİGÜRATÖRÜ</div><h1>Yayını <span>kendin kur.</span></h1><p>Parçaları seç, renkleri dene, uyumu satın almadan önce gör.</p></section>
+    <section class="workspace" aria-label="Yay konfigüratörü">
+      <div class="viewer-panel">
+        <div class="viewer-top"><div><span class="live-dot"></span><span class="viewer-label">3D ÖNİZLEME</span></div><span class="view-hint">Döndürmek için sürükle</span></div>
+        <div class="canvas-wrap"><canvas id="bowCanvas" aria-label="Seçtiğiniz parçalardan oluşan üç boyutlu yay görünümü"></canvas><div class="canvas-badge">OLİMPİK YAY <span>·</span> SAĞ EL</div><button id="resetView" class="reset-view" type="button" aria-label="Görünümü sıfırla">⟳</button></div>
+        <div class="viewer-bottom"><span><i class="swatch violet"></i><span id="colorLabel">Gece moru</span></span><span id="viewAngle">ÖN GÖRÜNÜM</span><span>MODEL <b>01</b></span></div>
+      </div>
+      <aside class="builder-panel"><div class="builder-heading"><div><div class="eyebrow small">YAPILANDIRICIN</div><h2>Yayını oluştur</h2></div><button id="resetConfig" class="reset-text" type="button">Sıfırla</button></div><div class="part-list" id="partList"></div><div class="compatibility" id="compatibility" role="status" aria-live="polite"></div><div class="total-row"><div><span class="muted">Tahmini toplam</span><span class="price" id="totalPrice">₺0</span></div><button id="summaryButton" type="button" class="summary-button">Özeti gör <span>→</span></button></div></aside>
+    </section>
+    <section class="trust-row" id="how"><div class="trust-icon">✳</div><div><b>Görünüşünü keşfet</b><span>Parça ve renkleri anında değiştir.</span></div><div class="trust-icon">⌁</div><div><b>Uyumu kontrol et</b><span>Bilinen bağlantı ölçülerini birlikte doğrula.</span></div><div class="trust-icon">◇</div><div><b>Güvenle karar ver</b><span>Ürün bilgileri netleşince seçenekleri karşılaştır.</span></div></section>
+    <footer id="about"><span>© 2026 OKFORM</span><span>Okçular için, okçularla birlikte.</span><a href="https://github.com" id="githubLink">GitHub projesi ↗</a></footer>
+  </main>
+  <dialog id="summaryDialog"><div class="dialog-inner"><button class="dialog-close" id="closeDialog" aria-label="Kapat">×</button><div class="eyebrow small">YAPILANDIRMA ÖZETİ</div><h2>Seçimlerin hazır.</h2><p>Bu prototipte fiyatlar ve uyumluluk bilgileri örnek veridir; satın alma öncesi satıcıyla doğrula.</p><div id="summaryContent"></div><button class="summary-button full" id="copySummary">Özeti kopyala <span>↗</span></button></div></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
+
