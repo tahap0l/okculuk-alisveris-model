@@ -5,7 +5,7 @@ const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
 const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik" };
 const canvas = $("bowCanvas"); let yaw = -.38, dragging = false, previousX = 0, toastTimer;
-const formatPrice = price => new Intl.NumberFormat("tr-TR", { style:"currency", currency:"TRY", maximumFractionDigits:0 }).format(price);
+const formatPrice = price => new Intl.NumberFormat("tr-TR", { style:"currency", currency:"TRY", minimumFractionDigits:2, maximumFractionDigits:2 }).format(price);
 function renderControls() {
   $("partList").innerHTML = Object.entries(partMeta).map(([category, meta]) => {
     const part = selectedPart(selection, category);
