@@ -1,6 +1,6 @@
 # OkForm 🏹
 
-**OkForm**, okçuların olimpik yay parçalarını seçip renklerini deneyebildiği ve montaj uyumunu satın almadan önce kontrol edebildiği açık kaynak bir 3D yapılandırıcı prototipidir.
+**OkForm**, okçuların olimpik yay parçalarını seçip renklerini deneyebildiği ve montaj uyumunu satın almadan önce kontrol edebildiği bir 3D yapılandırıcı prototipidir.
 
 ## Özellikler
 
