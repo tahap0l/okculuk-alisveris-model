@@ -1,5 +1,10 @@
 export const MILLIMETERS_PER_INCH = 25.4;
+export const STRING_BRACE_HEIGHT_MM = 55;
 export const SUPPORTED_BOW_LENGTHS_INCHES = Object.freeze([66, 68, 70]);
+
+export function getStringTipOffsetMm(drawMm = 0) {
+  return STRING_BRACE_HEIGHT_MM + Math.max(0, Number(drawMm) || 0) * 0.12;
+}
 
 export function getRiserLengthInches(part) {
   const parsed = Number(part?.riserLengthInches ?? String(part?.dimensions ?? "").match(/[\d.]+/)?.[0]);

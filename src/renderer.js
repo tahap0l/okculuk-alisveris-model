@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js?v=3d-model-3";
+import { calculateModelDimensions, getRiserLengthInches, getStringTipOffsetMm, STRING_BRACE_HEIGHT_MM } from "./modeling.js?v=navek-3d-9";
 
 const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", extender: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
@@ -142,7 +142,7 @@ function buildLimb(sign, dimensions, style = "generic", drawMm = 0) {
   const sample = t => ({
     y: sign * (dimensions.riserLengthMm / 2 - 4 + (dimensions.limbTipOffsetMm - dimensions.riserLengthMm / 2) * t),
     x: 1 + (style.includes("formula") ? 20 : 14) * profile[2] * Math.sin(Math.PI * t) - 4 * t,
-    z: 2 + (style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102) * Math.sin(Math.PI * t) + 28 * t + drawMm * (0.12 * t + 0.11 * Math.sin(Math.PI * t)),
+    z: 2 + (style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102) * Math.sin(Math.PI * t) + (STRING_BRACE_HEIGHT_MM - 2) * t + drawMm * (0.12 * t + 0.11 * Math.sin(Math.PI * t)),
     width: THREE.MathUtils.lerp((style.includes("foam") ? 27 : style.includes("b1") ? 34 : 31) * profile[0], (style.includes("foam") ? 7.5 : 8.5) * profile[0], Math.pow(t, 0.84)),
     depth: THREE.MathUtils.lerp((style.includes("foam") ? 7 : 8.5) * profile[1], 3.3 * profile[1], t)
   });
@@ -225,8 +225,8 @@ function makeSight(group, handedness, color, part = {}) {
 }
 function makeString(group, dimensions, color, part = {}, drawMm = 0) {
   const tip = dimensions.limbTipOffsetMm;
-  const tipZ = 30 + drawMm * 0.12;
-  const points = [new THREE.Vector3( -3, -tip, tipZ), new THREE.Vector3(0, 0, tipZ + drawMm), new THREE.Vector3(3, tip, tipZ)];
+  const tipZ = getStringTipOffsetMm(drawMm);
+  const points = [new THREE.Vector3(-3, -tip, tipZ), new THREE.Vector3(0, 0, tipZ + drawMm), new THREE.Vector3(-3, tip, tipZ)];
   const curve = new THREE.CatmullRomCurve3(points);
   const style = part.modelStyle ?? "generic";
   const thickness = style.includes("dacron") || style.includes("b50") ? 2.05 : style.includes("fastflight") ? 1.35 : style.includes("8125") ? 1.5 : 1.7;
@@ -435,8 +435,7 @@ export function createBowRenderer(canvas) {
       for (const key of IMPORTED_COMPONENTS) importedGroups[key].visible = key === "accessories" ? visible.accessories : visible[key];
       const rodDepth = rodLength(selectedAccessories.longRod, 28) + rodLength(selectedAccessories.extender, 4) + 180;
       signature = next;
-      const distance = dimensions.bowLengthMm * 1.72 + rodDepth * 0.32;
-      camera.position.set(dimensions.bowLengthMm * 0.82, dimensions.bowLengthMm * 0.11, distance);
+      camera.position.set(dimensions.bowLengthMm * 1.72, dimensions.bowLengthMm * 0.11, dimensions.bowLengthMm * 0.82 + rodDepth * 0.32);
       camera.near = Math.max(1, dimensions.bowLengthMm / 1500); camera.far = dimensions.bowLengthMm * 10; camera.updateProjectionMatrix();
       controls.target.set(0, 0, rodDepth * 0.15); controls.minDistance = dimensions.bowLengthMm * 0.82; controls.maxDistance = dimensions.bowLengthMm * 3.7; controls.update(); controls.saveState();
     }

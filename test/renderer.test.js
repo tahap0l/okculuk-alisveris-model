@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateModelDimensions, getRiserLengthInches, MILLIMETERS_PER_INCH } from "../src/modeling.js";
+import { calculateModelDimensions, getRiserLengthInches, getStringTipOffsetMm, MILLIMETERS_PER_INCH, STRING_BRACE_HEIGHT_MM } from "../src/modeling.js";
 
 test("selected bow length and riser produce correctly scaled millimeter dimensions", () => {
   const dimensions = calculateModelDimensions(25, 68);
@@ -25,4 +25,12 @@ test("unsupported lengths fall back safely and riser values are bounded", () => 
   assert.equal(calculateModelDimensions(0, 68).riserLengthInches, 25);
   assert.equal(getRiserLengthInches({ dimensions: '23" riser' }), 23);
   assert.equal(getRiserLengthInches({}), 25);
+});
+
+test("both limb tips and the taut string share the same forward mounting plane", () => {
+  assert.equal(getStringTipOffsetMm(0), STRING_BRACE_HEIGHT_MM);
+  assert.ok(STRING_BRACE_HEIGHT_MM > 33, "the string clears the riser's front face");
+  for (const drawMm of [0, 12 * MILLIMETERS_PER_INCH, 24 * MILLIMETERS_PER_INCH]) {
+    assert.equal(getStringTipOffsetMm(drawMm), STRING_BRACE_HEIGHT_MM + drawMm * 0.12);
+  }
 });
