@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#100b20" />
   <meta name="description" content="Navek okçuluk ürünlerini seçin, görsel önizlemede deneyin ve ürün uyumluluğu için doğrulanmış bilgilere bakın." />
   <title>OkForm — Yayını kendin kur</title>
-  <link rel="stylesheet" href="./styles.css?v=pdf-model-2" />
-  <link rel="stylesheet" href="./navek.css?v=pdf-model-2" />
+  <link rel="stylesheet" href="./styles.css?v=navek-3d-3" />
+  <link rel="stylesheet" href="./navek.css?v=navek-3d-3" />
   <script type="importmap">
     {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}
   </script>
@@ -22,7 +22,7 @@
     <section class="intro"><div class="eyebrow"><span></span> TÜRKİYE'NİN OKÇULUK KONFİGÜRATÖRÜ</div><h1>Yayını <span>kendin kur.</span></h1><p>Parçaları seç, renkleri dene, uyumu satın almadan önce gör.</p></section>
     <section class="workspace" aria-label="Yay konfigüratörü">
       <div class="viewer-panel">
-        <div class="viewer-top"><div><span class="live-dot"></span><span class="viewer-label">YAY ÖNİZLEMESİ</span></div><span class="view-hint">Döndürmek için sürükle</span></div>
+        <div class="viewer-top"><div><span class="live-dot"></span><span class="viewer-label">YAY ÖNİZLEMESİ</span></div><span class="view-hint">Sürükle: döndür · tekerlek: yakınlaştır</span></div>
         <div class="canvas-wrap"><canvas id="bowCanvas" aria-label="Seçtiğiniz parçalardan oluşan etkileşimli 3D yay modeli"></canvas><div class="canvas-badge" id="canvasBadge">OLİMPİK YAY <span>·</span> SAĞ EL</div><button id="resetView" class="reset-view" type="button" aria-label="Görünümü sıfırla">⟳</button></div>
         <div class="viewer-bottom"><span><i class="swatch violet"></i><span id="colorLabel">Görsel önizleme</span></span><span id="viewAngle">ÖN GÖRÜNÜM</span><span>MODEL <b>01</b></span></div>
       </div>
@@ -31,8 +31,8 @@
     <section class="trust-row" id="how"><div class="trust-icon">✳</div><div><b>Görünüşünü keşfet</b><span>Parça ve görsel önizleme renklerini değiştir.</span></div><div class="trust-icon">⌁</div><div><b>Uyumu kontrol et</b><span>Belirsiz bağlantıları doğrulanmış gibi göstermeyiz.</span></div><div class="trust-icon">◇</div><div><b>Navek ürünlerini incele</b><span>Fiyat ve ürün sayfası bağlantıları katalogda.</span></div></section>
     <footer id="about"><span>© 2026 OKFORM</span><span>Okçular için, okçularla birlikte.</span><a href="https://github.com/tahap0l/okculuk-alisveris-model" id="githubLink">GitHub projesi ↗</a></footer>
   </main>
-  <dialog id="summaryDialog"><div class="dialog-inner"><button class="dialog-close" id="closeDialog" aria-label="Kapat">×</button><div class="eyebrow small">YAPILANDIRMA ÖZETİ</div><h2>Seçimlerin hazır.</h2><p>Fiyatlar 10.10.2026 tarihinde Navek ürün sayfalarından kontrol edilmiştir ve değişebilir. Önizleme renkleri satıcı varyantı değildir. Bağlantı standardı doğrulanmayan parçaları almadan önce satıcıya sor.</p><div id="summaryContent"></div><button class="summary-button full" id="copySummary">Özeti kopyala <span>↗</span></button></div></dialog>
+  <dialog id="summaryDialog"><div class="dialog-inner"><button class="dialog-close" id="closeDialog" aria-label="Kapat">×</button><div class="eyebrow small">YAPILANDIRMA ÖZETİ</div><h2>Seçimlerin hazır.</h2><p>Fiyatlar 10.10.2026 tarihinde Navek ürün sayfalarından kontrol edilmiştir ve değişebilir. Rod boyları 3D model ayarıdır; fiyat ve stok varyantını Navek’te doğrula. Önizleme renkleri satıcı varyantı değildir.</p><div id="summaryContent"></div><button class="summary-button full" id="copySummary">Özeti kopyala <span>↗</span></button></div></dialog>
   <div id="toast" class="toast" role="status"></div>
-  <script type="module" src="./src/main.js?v=pdf-model-3"></script>
+  <script type="module" src="./src/main.js?v=navek-3d-3"></script>
 </body>
 </html>

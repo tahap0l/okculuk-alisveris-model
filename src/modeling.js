@@ -22,4 +22,3 @@ export function calculateModelDimensions(riserLengthInches, requestedBowLengthIn
     limbTipOffsetMm: bowLengthInches * MILLIMETERS_PER_INCH / 2
   });
 }
-

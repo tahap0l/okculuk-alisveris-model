@@ -26,4 +26,3 @@ test("unsupported lengths fall back safely and riser values are bounded", () => 
   assert.equal(getRiserLengthInches({ dimensions: '23" riser' }), 23);
   assert.equal(getRiserLengthInches({}), 25);
 });
-

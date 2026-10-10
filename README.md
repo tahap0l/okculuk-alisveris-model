@@ -5,13 +5,16 @@ OkForm, Türkiye'deki okçuların olimpik yay parçalarını seçip görsel bir 
 ## Mevcut özellikler
 
 - Fare veya dokunmatik hareketle döndürülebilen Three.js 3D yay önizlemesi
-- Gövde, kanatlar, nişangâh ve kirişi ayrı ayrı gösterme/gizleme
+- Gövde, kanatlar, nişangâh, kiriş ve stabilizer takımını ayrı ayrı gösterme/gizleme
+- Navek'ten 10 gövde, 7 kanat, 5 nişangâh, 4 uzun rod, 4 kısa rod, 3 V-bar ve 5 kiriş seçeneği
+- Uzun ve kısa rod boyunu 3D önizlemede değiştirme
 - 66, 68 ve 70 inç yay boyu seçimi; gövde ölçüsüne göre simetrik kanat boyu hesabı
 - mm cinsinden model ölçüleri ve sağ/sol el nişangâh konumu
 - Navek sepet PDF'sini sürükleyip bırakma, satırları tanıma ve desteklenen parçaları 3D modele ekleme
-- Stabilizer, V-bar, ok yatağı, basınç düğmesi, clicker ve arpacık için şematik aksesuar geometrileri
+- Eğrisel kanatlar, gövde/kabza, montaj vidaları, ayarlı nişangâh, kiriş ve ön/yan rod takımı için detaylı parametrik geometri
+- PDF'den gelen stabilizer, V-bar, ok yatağı, basınç düğmesi, clicker ve arpacık için şematik aksesuar geometrileri
 - PDF ürün satırlarını listeleme; model dışı çanta ve ayaklıkları yay geometrisine zorla eklememe
-- Navek'ten gövde, kanat ve nişangâh ürünleri; ürün sayfası bağlantıları ve kontrol edilen fiyatlar
+- Navek'ten tüm ana yay ve denge takımı kategorileri; her seçenek ürün sayfasına bağlıdır
 - Görsel renk denemeleri (satıcının sunduğu renk seçenekleri oldukları iddia edilmez)
 - Bilgi eksik olduğunda “doğrulanamadı” diyen uyumluluk göstergesi
 - Ürün seçimi, fiyat toplamı ve bağlantı paylaşımı
@@ -36,7 +39,7 @@ Bu depo, GitHub Actions ile GitHub Pages'e otomatik yayınlanacak şekilde ayarl
 
 ## Katalog doğruluğu
 
-Ürünler ve fiyatlar 10 Ekim 2026 tarihinde Navek'in herkese açık ürün sayfalarından kontrol edildi. Fiyatlar değişebilir. Ürün sayfalarının görünür içeriğinde satıcı renk varyantları ve bazı gövde/kanat bağlantı standartları doğrulanamadığından uygulama mor tonlu renkleri yalnızca **görsel önizleme** olarak sunar ve belirsiz bağlantı uyumunu onaylamaz. Kiriş kategorisi bağlantısı var; ürün varyantı ve fiyatı henüz katalogda doğrulanmadı.
+Ürünler ve görünen fiyatlar 10 Ekim 2026 tarihinde Navek'in herkese açık ürün sayfalarından kontrol edildi. Fiyat ve stok değişebilir; sepete geçmeden önce ürün sayfasını kontrol et. Bazı ürün sayfalarında bağlantı standardı veya beden varyantı belirtilmediği için model bunları tahmin ederek uyum onayı vermez. Mor tonlu renkler yalnızca **görsel önizlemedir**. Rod uzunluğu seçimi geometriyi değiştirir; mağaza varyantı veya fiyatı olduğunu iddia etmez.
 
 ## Model kapsamı
 
@@ -51,4 +54,3 @@ Doğrulanmış ürün ölçüleri, renk seçenekleri ve CAD dosyaları için iss
 ## Lisans
 
 Henüz seçilmedi. Resmî lisans eklenene kadar yeniden kullanım koşulları belirlenmemiştir.
-

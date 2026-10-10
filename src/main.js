@@ -1,10 +1,11 @@
-import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, calculateTotal } from "./catalog.js?v=pdf-model-2";
-import { createBowRenderer } from "./renderer.js?v=pdf-model-2";
+import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-3";
+import { createBowRenderer } from "./renderer.js?v=navek-3d-3";
 
 const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
-const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik" };
+const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik", "#ded9e7":"Ay gümüşü", "#ece5f4":"İnci", "#9b8cae":"Lila metal" };
 let bowLengthInches = 68, handedness = "right", viewer = null, toastTimer, importedParts = [];
+const rodLengths = { longRod: 28, shortRod: 10 };
 const formatPrice = price => new Intl.NumberFormat("tr-TR", { style:"currency", currency:"TRY", minimumFractionDigits:2, maximumFractionDigits:2 }).format(price);
 const modelKindLabels = { riser:"Yay gövdesi", limbs:"Kanatlar", sight:"Nişangâh", string:"Kiriş", stabilizer:"Stabilizer", vbar:"V-bar", "arrow-rest":"Ok yatağı", plunger:"Basınç düğmesi", clicker:"Clicker", "sight-pin":"Arpacık", grip:"Grip", "bow-stand":"Yay ayağı", bag:"Taşıma çantası", unmapped:"Model türü eşleştirilmedi" };
 
@@ -20,9 +21,11 @@ function renderControls() {
     const part = selectedPart(selection, category);
     const swatches = part.colors.map(color => `<button class="color-option ${colors[category]===color?"selected":""}" type="button" style="background:${color}" title="${colorNames[color]??"Renk"}" aria-label="${meta.title}: ${colorNames[color]??"renk"}" aria-pressed="${colors[category]===color}" data-color-category="${category}" data-color="${color}"></button>`).join("");
     const preview = part.colors.length ? `<div class="color-row" aria-label="${meta.title} önizleme renkleri"><span class="part-meta">Önizleme rengi</span>${swatches}<span class="part-meta">Satıcı rengi doğrulanmadı</span></div>` : `<div class="color-row"><span class="part-meta">Renk seçeneği doğrulanmadı</span></div>`;
-    return `<div class="part-row"><div class="part-icon" aria-hidden="true">${meta.icon}</div><div><div class="part-title">${meta.title}</div><div class="part-meta">${meta.hint}</div></div><select class="part-select" aria-label="${meta.title} seç" data-category="${category}">${partCatalog[category].map(item=>`<option value="${item.id}" ${selection[category]===item.id?"selected":""}>${item.label}${item.price?` · ${formatPrice(item.price)}`:""}</option>`).join("")}</select>${preview}<a class="product-source" href="${part.source}" target="_blank" rel="noreferrer">${part.material}${part.dimensions?` · ${part.dimensions}`:""} · Navek sayfası ↗</a></div>`;
+    const rodVariant = part.rodLengths?.length ? `<label class="variant-control">Önizleme boyu<select aria-label="${meta.title} önizleme boyu" data-rod-category="${category}">${part.rodLengths.map(length=>`<option value="${length}" ${rodLengths[category]===length?"selected":""}>${length} inç</option>`).join("")}</select><small>Geometri ayarı · mağaza varyantı ve fiyatı değil</small></label>` : "";
+    return `<div class="part-row"><div class="part-icon" aria-hidden="true">${meta.icon}</div><div><div class="part-title">${meta.title}</div><div class="part-meta">${meta.hint}</div></div><select class="part-select" aria-label="${meta.title} seç" data-category="${category}">${partCatalog[category].map(item=>`<option value="${item.id}" ${selection[category]===item.id?"selected":""}>${item.label}${item.price?` · ${formatPrice(item.price)}`:""}</option>`).join("")}</select>${rodVariant}${preview}<a class="product-source" href="${part.source}" target="_blank" rel="noreferrer">${part.material}${part.dimensions?` · ${part.dimensions}`:""} · Navek sayfası ↗</a></div>`;
   }).join("");
-  $("partList").querySelectorAll("select").forEach(select=>select.addEventListener("change",event=>{const category=event.currentTarget.dataset.category;selection[category]=event.currentTarget.value;const colorsForPart=selectedPart(selection,category).colors;if(colorsForPart.length&&!colorsForPart.includes(colors[category]))colors[category]=colorsForPart[0];update();}));
+  $("partList").querySelectorAll("select[data-category]").forEach(select=>select.addEventListener("change",event=>{const category=event.currentTarget.dataset.category;selection[category]=event.currentTarget.value;const part=selectedPart(selection,category);const colorsForPart=part.colors;if(colorsForPart.length&&!colorsForPart.includes(colors[category]))colors[category]=colorsForPart[0];if(category in rodLengths)rodLengths[category]=part.rodLengthInches??part.rodLengths?.[0]??rodLengths[category];update();}));
+  $("partList").querySelectorAll("select[data-rod-category]").forEach(select=>select.addEventListener("change",event=>{rodLengths[event.currentTarget.dataset.rodCategory]=Number(event.currentTarget.value);update();}));
   $("partList").querySelectorAll(".color-option").forEach(button=>button.addEventListener("click",event=>{const {colorCategory,color}=event.currentTarget.dataset;colors[colorCategory]=color;update();}));
 }
 
@@ -37,8 +40,9 @@ function update() {
   if (viewer) {
     const importedForModel=importedParts.filter(part=>part.modelEnabled&&part.modelable);
     const importedRiser=importedForModel.find(part=>part.modelKind==="riser");
-    const dimensions=viewer.update({selection:{...selection,riserPart:{...selectedPart(selection,"riser"),riserLengthInches:importedRiser?.riserLengthInches??selectedPart(selection,"riser").riserLengthInches}},colors,bowLengthInches,handedness,importedParts:importedForModel});
-    $("modelDimensions").textContent=`Yay ${dimensions.bowLengthInches}" (${Math.round(dimensions.bowLengthMm)} mm) · Gövde ${dimensions.riserLengthInches}" (${Math.round(dimensions.riserLengthMm)} mm) · Her kanat ${dimensions.limbLengthInches.toFixed(1)}" (${Math.round(dimensions.limbLengthMm)} mm)`;
+    const selectedAccessories=Object.fromEntries(["longRod","shortRod","vbar"].map(category=>[category,{...selectedPart(selection,category),rodLengthInches:rodLengths[category]}]));
+    const dimensions=viewer.update({selection:{...selection,riserPart:{...selectedPart(selection,"riser"),riserLengthInches:importedRiser?.riserLengthInches??selectedPart(selection,"riser").riserLengthInches}},colors,bowLengthInches,handedness,importedParts:importedForModel,selectedAccessories});
+    $("modelDimensions").textContent=`Yay ${dimensions.bowLengthInches}" (${Math.round(dimensions.bowLengthMm)} mm) · Gövde ${dimensions.riserLengthInches}" (${Math.round(dimensions.riserLengthMm)} mm) · Kanatlar ${dimensions.limbLengthInches.toFixed(1)}" · Ön rod ${rodLengths.longRod}" · Yan rod ${rodLengths.shortRod}"`;
   }
 }
 
@@ -95,7 +99,7 @@ function showToast(message){const toast=$("toast");toast.textContent=message;toa
 function summaryText(){return [...Object.entries(partMeta).map(([category,meta])=>{const part=selectedPart(selection,category);return `${meta.title}: ${part.label}${part.price?` (${formatPrice(part.price)})`:" (fiyat doğrulanmadı)"}${part.colors.length?` · görsel önizleme: ${colorNames[colors[category]]??"renk"} (satıcı rengi değil)`:""} · ${part.source}`;}),`3D model: ${bowLengthInches} inç · ${handedness === "right" ? "sağ el" : "sol el"}`,`Ölçekli parametrik önizleme; üretici CAD modeli değildir.`,`Ürün fiyatları kontrol tarihi: 10.10.2026; değişebilir.`,`Tahmini toplam (fiyatı bilinen seçili parçalar): ${formatPrice(calculateTotal(selection))}`,`Uyumluluk: ${evaluateCompatibility(selection).label}`].join("\n");}
 
 $("shareButton").addEventListener("click",async()=>{const params=new URLSearchParams({...selection,...Object.fromEntries(Object.entries(colors).map(([key,value])=>[`color-${key}`,value])),bowLength:String(bowLengthInches),hand:handedness});const url=new URL(location.href);url.hash=params.toString();try{await navigator.clipboard.writeText(url.toString());showToast("Yapılandırma bağlantısı kopyalandı.");}catch{location.hash=params.toString();showToast("Yapılandırma bağlantısı adres çubuğuna eklendi.");}});
-$("resetConfig").addEventListener("click",()=>{Object.assign(selection,initialSelection);Object.assign(colors,initialColors);bowLengthInches=68;handedness="right";clearImportedBasket();$("bowLength").value="68";$("handedness").value="right";document.querySelectorAll("[data-component]").forEach(input=>{input.checked=true;viewer?.setComponentVisibility(input.dataset.component,true);});history.replaceState(null,"",location.pathname);update();});
+$("resetConfig").addEventListener("click",()=>{Object.assign(selection,initialSelection);Object.assign(colors,initialColors);Object.assign(rodLengths,{longRod:28,shortRod:10});bowLengthInches=68;handedness="right";clearImportedBasket();$("bowLength").value="68";$("handedness").value="right";document.querySelectorAll("[data-component]").forEach(input=>{input.checked=true;viewer?.setComponentVisibility(input.dataset.component,true);});history.replaceState(null,"",location.pathname);update();});
 $("resetView").addEventListener("click",()=>viewer?.resetView());
 $("bowLength").addEventListener("change",event=>{bowLengthInches=Number(event.currentTarget.value);update();});
 $("handedness").addEventListener("change",event=>{handedness=event.currentTarget.value;update();});

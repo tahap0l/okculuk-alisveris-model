@@ -2,6 +2,16 @@
 .product-source{grid-column:2/4;color:#aa96c8;text-decoration:none;font-size:9px;line-height:1.5;margin-top:6px}
 .product-source:hover{color:#d5c0ff;text-decoration:underline}
 .part-row{row-gap:2px}
-.part-select{max-width:190px}
-@media(max-width:420px){.part-select{max-width:145px}.color-row .part-meta:last-child{flex-basis:100%}}
-
+.part-select{max-width:228px}
+.part-row{padding-top:16px;padding-bottom:14px}
+.part-title{font-size:12px}
+.variant-control{grid-column:2/4;display:grid;grid-template-columns:auto minmax(90px,140px);align-items:center;gap:6px 12px;margin:9px 0 2px;color:#cfc4db;font-size:9px}
+.variant-control select{background:#20182a;color:#eee8f6;border:1px solid rgba(217,198,255,.18);border-radius:6px;padding:6px 8px;font:inherit}
+.variant-control small{grid-column:1/-1;color:#8d8299;font-size:8px}
+.product-source{grid-column:2/4;color:#b59adb;text-decoration:none;font-size:9px;line-height:1.55;margin-top:8px}
+.viewer-panel{height:585px}
+.canvas-wrap{height:474px}
+.canvas-wrap canvas{filter:drop-shadow(0 15px 26px rgba(5,3,10,.4))}
+@media(max-width:800px){.viewer-panel{height:475px}.canvas-wrap{height:364px}}
+@media(max-width:420px){.viewer-panel{height:438px}.canvas-wrap{height:327px}.part-select{max-width:160px}}
+@media(max-width:420px){.color-row .part-meta:last-child{flex-basis:100%}}
