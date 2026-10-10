@@ -4,7 +4,10 @@ OkForm, Türkiye'deki okçuların olimpik yay parçalarını seçip görsel bir 
 
 ## Mevcut özellikler
 
-- Sürükleyerek döndürülebilen kodla çizilmiş yay önizlemesi
+- Fare veya dokunmatik hareketle döndürülebilen Three.js 3D yay önizlemesi
+- Gövde, kanatlar, nişangâh ve kirişi ayrı ayrı gösterme/gizleme
+- 66, 68 ve 70 inç yay boyu seçimi; gövde ölçüsüne göre simetrik kanat boyu hesabı
+- mm cinsinden model ölçüleri ve sağ/sol el nişangâh konumu
 - Navek'ten gövde, kanat ve nişangâh ürünleri; ürün sayfası bağlantıları ve kontrol edilen fiyatlar
 - Görsel renk denemeleri (satıcının sunduğu renk seçenekleri oldukları iddia edilmez)
 - Bilgi eksik olduğunda “doğrulanamadı” diyen uyumluluk göstergesi
@@ -34,7 +37,7 @@ Bu depo, GitHub Actions ile GitHub Pages'e otomatik yayınlanacak şekilde ayarl
 
 ## Model kapsamı
 
-Mevcut önizleme gerçek üretici CAD modeli değildir; canvas üzerinde derinlik hissiyle çizilmiş yaklaşık bir temsildir. Satın almaya uygun gerçek 3D model için satıcı/üretici ölçüleri ve kullanım izni gerekir. Bu nedenle önizleme ürünün tam boyutunu, gerçek rengini veya mekanik uyumunu garanti etmez.
+3D sahne gövde, kanatlar, nişangâh ve kirişi ayrı parametrik geometrilerle oluşturur. Yay boyu ve gövde seçimi modelin mm ölçülerine yansır. Bu geometri üretici CAD modeli değildir: ürünlerin tam biçimini, üretici toleranslarını veya mekanik uyumunu garanti etmez. Doğrulanmış teknik çizimler eklendiğinde ürün bazında daha doğru modellere geçilebilir. Renkler satıcı varyantı değil, görsel önizlemedir.
 
 ## Katkı
 

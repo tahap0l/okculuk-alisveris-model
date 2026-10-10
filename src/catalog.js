@@ -5,9 +5,9 @@ const product = (data) => ({ ...data, colors: previewColors, colorOptionsVerifie
 
 export const partCatalog = {
   riser: [
-    product({ id: "core-astral-25", label: 'Core Astral 25"', price: 5583.48, listPrice: 6568.8, mount: null, slug: "core-klasik-yay-govdesi-astral-25", dimensions: '25"', material: "Ürün sayfasındaki teknik bilgiler" }),
-    product({ id: "helix-alfa-23", label: 'Helix Alfa 23"', price: 28224, listPrice: 35280, mount: null, slug: "helix-klasik-yay-govdesi-alfa-23", dimensions: '23"', material: "6061 alüminyum · CNC işleme" }),
-    product({ id: "kinetic-evolium-21", label: 'Kinetic Evolium 21"', price: 10300.8, listPrice: 12876, mount: null, slug: "kinetic-klasik-yay-govdesi-evolium-21", dimensions: '21"', material: "Genç okçular ve kısa çekiş için kompakt gövde" })
+    product({ id: "core-astral-25", label: 'Core Astral 25"', price: 5583.48, listPrice: 6568.8, mount: null, slug: "core-klasik-yay-govdesi-astral-25", dimensions: '25"', riserLengthInches: 25, material: "Ürün sayfasındaki teknik bilgiler" }),
+    product({ id: "helix-alfa-23", label: 'Helix Alfa 23"', price: 28224, listPrice: 35280, mount: null, slug: "helix-klasik-yay-govdesi-alfa-23", dimensions: '23"', riserLengthInches: 23, material: "6061 alüminyum · CNC işleme" }),
+    product({ id: "kinetic-evolium-21", label: 'Kinetic Evolium 21"', price: 10300.8, listPrice: 12876, mount: null, slug: "kinetic-klasik-yay-govdesi-evolium-21", dimensions: '21"', riserLengthInches: 21, material: "Genç okçular ve kısa çekiş için kompakt gövde" })
   ],
   limbs: [
     product({ id: "kinetic-honoric-v2", label: "Kinetic Honoric V2 Carbon Foam ILF", price: 6814.08, listPrice: 8517.6, mount: "ILF", slug: "kinetic-klasik-yay-kanadi-ilf-honoric-v2-carbon-foam", dimensions: "Varyant sayfasında seçilir", material: "Karbon · foam çekirdek", verifiedCompatibility: "Tüm ILF uyumlu klasik yay gövdeleri" }),
