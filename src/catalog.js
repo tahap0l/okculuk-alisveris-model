@@ -45,9 +45,9 @@ export const partCatalog = {
     product({ id: "ases-xforce-short", label: "Ases X-Force 3K · kısa rod", price: 2260.32, mount: null, slug: "ases-stabilizer-kisa-x-force-3k", dimensions: "Kısa stabilizer", rodLengthInches: 10, rodLengths: [10, 12], material: "3K karbon" })
   ],
   vbar: [
-    product({ id: "ases-vbar-unibar", label: "Ases Uni Bar Plus · ayarlanabilir V-bar", price: 2648.64, mount: "Rod bağlantısı ürün sayfasında", slug: "ases-v-bar-adjustable-uni-bar-plus", dimensions: "Açı/konum ayarlı", material: "Paslanmaz bağlantı civataları" }),
-    product({ id: "wns-vbar-smc", label: "WNS V-Bar Carbon SMC", price: 3025.44, mount: "SMC rod sistemi", slug: "wns-v-bar-carbon-smc", dimensions: '40° / 45°', material: "Full karbon" }),
-    product({ id: "winwin-vbar-cxa", label: "Win&Win V-Bar CX-A Carbon", price: 3966.24, mount: "Standart rod bağlantısı", slug: "winwin-v-bar-cx-a-carbon", dimensions: "Karbon V-bar", material: "Win&Win" })
+    product({ id: "ases-vbar-unibar", label: "Ases Uni Bar Plus · ayarlanabilir V-bar", price: 2648.64, mount: "Rod bağlantısı ürün sayfasında", slug: "ases-v-bar-adjustable-uni-bar-plus", dimensions: "Açı/konum ayarlı · önizleme 40°", previewAngleDegrees: 40, material: "Paslanmaz bağlantı civataları" }),
+    product({ id: "wns-vbar-smc", label: "WNS V-Bar Carbon SMC", price: 3025.44, mount: "SMC rod sistemi", slug: "wns-v-bar-carbon-smc", dimensions: '40° / 45°', previewAngleDegrees: 45, material: "Full karbon" }),
+    product({ id: "winwin-vbar-cxa", label: "Win&Win V-Bar CX-A Carbon", price: 3966.24, mount: "Standart rod bağlantısı", slug: "winwin-v-bar-cx-a-carbon", dimensions: "Karbon V-bar · önizleme 40°", previewAngleDegrees: 40, material: "Win&Win" })
   ],
   string: [
     product({ id: "atan-652x", label: "Atan 652X Recurve", price: 403.2, mount: "Olimpik klasik yay", slug: "atan-hazir-kiris-ipi-652x-recurve-bow", dimensions: 'Yay boyu ürün varyantından seçilir', material: "652X hazır kiriş" }),

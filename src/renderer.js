@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js?v=3d-model-2";
+import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js?v=3d-model-3";
 
 const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
@@ -101,9 +101,9 @@ function buildLimb(sign, dimensions) {
   const rings = 56, sides = 12, positions = [], indices = [];
   const sample = t => ({
     y: sign * (dimensions.riserLengthMm / 2 - 4 + (dimensions.limbTipOffsetMm - dimensions.riserLengthMm / 2) * t),
-    x: 2 + 24 * Math.sin(Math.PI * t) - 7 * t,
-    z: -4 + 32 * Math.sin(Math.PI * t) - 8 * t,
-    width: THREE.MathUtils.lerp(25, 7.5, Math.pow(t, 0.84)),
+    x: 1 + 14 * Math.sin(Math.PI * t) - 4 * t,
+    z: 2 + 102 * Math.sin(Math.PI * t) + 28 * t,
+    width: THREE.MathUtils.lerp(31, 8.5, Math.pow(t, 0.84)),
     depth: THREE.MathUtils.lerp(8.5, 3.3, t)
   });
   for (let i = 0; i <= rings; i++) {
@@ -167,7 +167,7 @@ function makeSight(group, handedness, color) {
 }
 function makeString(group, dimensions, color) {
   const tip = dimensions.limbTipOffsetMm;
-  const points = [new THREE.Vector3(0, -tip, 1), new THREE.Vector3(0, -tip * 0.48, 24), new THREE.Vector3(0, 0, 32), new THREE.Vector3(0, tip * 0.48, 24), new THREE.Vector3(0, tip, 1)];
+  const points = [new THREE.Vector3(-3, -tip, 30), new THREE.Vector3(-1, -tip * 0.48, 31), new THREE.Vector3(0, 0, 32), new THREE.Vector3(1, tip * 0.48, 31), new THREE.Vector3(3, tip, 30)];
   const curve = new THREE.CatmullRomCurve3(points);
   const stringMat = material(color, { metalness: 0.08, roughness: 0.24, clearcoat: 0.65 });
   const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 90, 1.65, 8, false), stringMat); group.add(line);
@@ -196,12 +196,15 @@ function makeStabilization(group, selectedAccessories, colors) {
   addCylinder(group, 13, 36, [1, -24, 78 + longMm], hub, "z");
   addCylinder(group, 14, 32, [1, -24, 91 + longMm], hardware, "z");
   const shortMm = rodLength(selectedAccessories.shortRod, 10);
+  const vbar = selectedAccessories.vbar;
+  const angleMatch = String(vbar?.dimensions ?? "").match(/\b(40|45)\s*°/);
+  const vbarAngle = THREE.MathUtils.degToRad(Number(vbar?.previewAngleDegrees ?? angleMatch?.[1] ?? 40));
   const hubPos = [0, -39, 49];
   addBox(group, [46, 18, 24], hubPos, hub);
   addCylinder(group, 12, 25, [0, -39, 62], hardware, "z");
   for (const side of [-1, 1]) {
     const start = [side * 15, -39, 44];
-    const end = [side * (shortMm * 0.67), -39 - shortMm * 0.34, 20];
+    const end = [side * (shortMm * Math.cos(vbarAngle)), -39, 44 - shortMm * Math.sin(vbarAngle)];
     addRod(group, start, end, 7.2, shortCarbon, 5.5);
     addCylinder(group, 10, 23, end, hub, "x");
     addCylinder(group, 11, 22, [end[0] + side * 7, end[1], end[2]], hardware, "x");
@@ -307,8 +310,8 @@ export function createBowRenderer(canvas) {
       for (const key of IMPORTED_COMPONENTS) importedGroups[key].visible = key === "accessories" ? visible.accessories : visible[key];
       const rodDepth = rodLength(selectedAccessories.longRod, 28) + 180;
       signature = next;
-      const distance = dimensions.bowLengthMm * 1.55 + rodDepth * 0.34;
-      camera.position.set(dimensions.bowLengthMm * 0.35, dimensions.bowLengthMm * 0.075, distance);
+      const distance = dimensions.bowLengthMm * 1.72 + rodDepth * 0.32;
+      camera.position.set(dimensions.bowLengthMm * 0.82, dimensions.bowLengthMm * 0.11, distance);
       camera.near = Math.max(1, dimensions.bowLengthMm / 1500); camera.far = dimensions.bowLengthMm * 10; camera.updateProjectionMatrix();
       controls.target.set(0, 0, rodDepth * 0.15); controls.minDistance = dimensions.bowLengthMm * 0.82; controls.maxDistance = dimensions.bowLengthMm * 3.7; controls.update(); controls.saveState();
     }

@@ -1,9 +1,9 @@
-import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-3";
-import { createBowRenderer } from "./renderer.js?v=navek-3d-3";
+import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-4";
+import { createBowRenderer } from "./renderer.js?v=navek-3d-4";
 
 const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
-const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik", "#ded9e7":"Ay gümüşü", "#ece5f4":"İnci", "#9b8cae":"Lila metal" };
+const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik", "#ded9e7":"Ay gümüşü", "#ece5f4":"İnci", "#9b8cae":"Lila metal", "#bd4b75":"Ahududu" };
 let bowLengthInches = 68, handedness = "right", viewer = null, toastTimer, importedParts = [];
 const rodLengths = { longRod: 28, shortRod: 10 };
 const formatPrice = price => new Intl.NumberFormat("tr-TR", { style:"currency", currency:"TRY", minimumFractionDigits:2, maximumFractionDigits:2 }).format(price);
