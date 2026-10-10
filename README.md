@@ -8,6 +8,9 @@ OkForm, Türkiye'deki okçuların olimpik yay parçalarını seçip görsel bir 
 - Gövde, kanatlar, nişangâh ve kirişi ayrı ayrı gösterme/gizleme
 - 66, 68 ve 70 inç yay boyu seçimi; gövde ölçüsüne göre simetrik kanat boyu hesabı
 - mm cinsinden model ölçüleri ve sağ/sol el nişangâh konumu
+- Navek sepet PDF'sini sürükleyip bırakma, satırları tanıma ve desteklenen parçaları 3D modele ekleme
+- Stabilizer, V-bar, ok yatağı, basınç düğmesi, clicker ve arpacık için şematik aksesuar geometrileri
+- PDF ürün satırlarını listeleme; model dışı çanta ve ayaklıkları yay geometrisine zorla eklememe
 - Navek'ten gövde, kanat ve nişangâh ürünleri; ürün sayfası bağlantıları ve kontrol edilen fiyatlar
 - Görsel renk denemeleri (satıcının sunduğu renk seçenekleri oldukları iddia edilmez)
 - Bilgi eksik olduğunda “doğrulanamadı” diyen uyumluluk göstergesi
@@ -38,6 +41,8 @@ Bu depo, GitHub Actions ile GitHub Pages'e otomatik yayınlanacak şekilde ayarl
 ## Model kapsamı
 
 3D sahne gövde, kanatlar, nişangâh ve kirişi ayrı parametrik geometrilerle oluşturur. Yay boyu ve gövde seçimi modelin mm ölçülerine yansır. Bu geometri üretici CAD modeli değildir: ürünlerin tam biçimini, üretici toleranslarını veya mekanik uyumunu garanti etmez. Doğrulanmış teknik çizimler eklendiğinde ürün bazında daha doğru modellere geçilebilir. Renkler satıcı varyantı değil, görsel önizlemedir.
+
+Sepet PDF'si PDF.js ile yalnızca kullanıcının tarayıcısında okunur; dosyanın kendisi sunucuya gönderilmez. Ürün satırları, adetleri ve fiyatları ekranda listelenir. Gövde/kanat/nişangâh gibi desteklenen satırlar ilgili yaklaşık geometriyle gösterilir; modelden çıkarılabilir veya yeniden sürükleyerek sahneye eklenebilir. Çanta ve yay ayağı gibi yay üzerine takılmayan ürünler listelenir ama yaya bağlanmış gibi çizilmez. PDF metni olmayan tarama dosyaları henüz desteklenmez.
 
 ## Katkı
 

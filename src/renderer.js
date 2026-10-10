@@ -4,6 +4,7 @@ import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js?v=
 
 const DEFAULTS = { riser: "#7752b2", limbs: "#d9d4de", sight: "#262332", string: "#af486d" };
 const COMPONENTS = ["riser", "limbs", "sight", "string"];
+const IMPORTED_COMPONENTS = [...COMPONENTS, "accessories"];
 const safeColor = (value, fallback) => /^#[\da-f]{6}$/i.test(value ?? "") ? value : fallback;
 
 function createMaterial(color, { metalness = 0.45, roughness = 0.34, tint = 1 } = {}) {
@@ -128,6 +129,56 @@ function makeString(group, dimensions, color) {
   group.add(rest);
 }
 
+function addBarBetween(group, start, end, radius, color) {
+  const from = new THREE.Vector3(...start), to = new THREE.Vector3(...end);
+  const direction = to.clone().sub(from);
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, direction.length(), 12), createMaterial(color, { metalness: 0.64, roughness: 0.28 }));
+  mesh.position.copy(from.add(to).multiplyScalar(0.5));
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+  group.add(mesh);
+}
+
+function makeImportedAccessory(group, part) {
+  const color = part.color ?? "#8a8491";
+  if (part.modelKind === "stabilizer") {
+    const match = part.label.match(/\b(\d{1,2}(?:\.\d+)?)\s*(?:inch|inches|in\b|["″])/i);
+    const length = (Number(match?.[1]) || 10) * 25.4;
+    addBarBetween(group, [34, 0, 44], [34, 0, 44 + length], 6, color);
+    return;
+  }
+  if (part.modelKind === "vbar") {
+    addBarBetween(group, [35, 0, 51], [113, 40, 31], 5, color);
+    addBarBetween(group, [35, 0, 51], [113, -40, 31], 5, color);
+    return;
+  }
+  if (part.modelKind === "arrow-rest") {
+    addBox(group, [32, 6, 20], [29, -7, 40], createMaterial(color, { metalness: 0.5, roughness: 0.36 }));
+    addBox(group, [5, 22, 10], [14, 2, 40], createMaterial(color, { metalness: 0.5, roughness: 0.36 }));
+    return;
+  }
+  if (part.modelKind === "plunger") {
+    const plunger = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 28, 18), createMaterial(color));
+    plunger.rotation.z = Math.PI / 2;
+    plunger.position.set(39, -8, 46);
+    group.add(plunger);
+    return;
+  }
+  if (part.modelKind === "clicker") {
+    addBox(group, [3, 138, 3], [37, 72, 52], createMaterial(color, { metalness: 0.82, roughness: 0.2 }));
+    addBox(group, [12, 7, 5], [37, 4, 52], createMaterial(color, { metalness: 0.82, roughness: 0.2 }));
+    return;
+  }
+  if (part.modelKind === "grip") {
+    addBox(group, [24, 92, 42], [-5, 0, 3], createMaterial(color, { metalness: 0.12, roughness: 0.62 }));
+    return;
+  }
+  if (part.modelKind === "sight-pin") {
+    const pin = new THREE.Mesh(new THREE.TorusGeometry(8, 2, 8, 28), createMaterial(color, { metalness: 0.72, roughness: 0.22 }));
+    pin.position.set(222, 19, 53);
+    group.add(pin);
+  }
+}
+
 function disposeChildren(group) {
   for (const child of group.children) {
     child.traverse(object => {
@@ -177,7 +228,10 @@ export function createBowRenderer(canvas) {
     modelRoot.add(group);
     return [key, group];
   }));
+  const importedGroups = Object.fromEntries(IMPORTED_COMPONENTS.map(key => [key, new THREE.Group()]));
+  for (const group of Object.values(importedGroups)) modelRoot.add(group);
   const visible = Object.fromEntries(COMPONENTS.map(key => [key, true]));
+  visible.accessories = true;
   let signature = "";
   let framePending = false;
   let disposed = false;
@@ -204,16 +258,31 @@ export function createBowRenderer(canvas) {
   resizeObserver.observe(canvas);
   window.addEventListener("resize", resize);
 
-  function update({ selection, colors, bowLengthInches = 68, handedness = "right" }) {
-    const riserLength = getRiserLengthInches(selection.riserPart);
+  function update({ selection, colors, bowLengthInches = 68, handedness = "right", importedParts = [] }) {
+    const importedRiser = importedParts.find(part => part.modelKind === "riser");
+    const riserLength = Number(importedRiser?.riserLengthInches) || getRiserLengthInches(selection.riserPart);
     const dimensions = calculateModelDimensions(riserLength, bowLengthInches);
-    const nextSignature = [selection.riser, selection.limbs, selection.sight, selection.string, dimensions.bowLengthInches, dimensions.riserLengthInches, handedness].join("|");
+    const importedSignature = importedParts.map(part => [part.id, part.modelKind, part.label, part.color, part.riserLengthInches].join(":" )).join(";");
+    const nextSignature = [selection.riser, selection.limbs, selection.sight, selection.string, dimensions.bowLengthInches, dimensions.riserLengthInches, handedness, importedSignature].join("|");
     if (signature !== nextSignature) {
       for (const key of COMPONENTS) disposeChildren(groups[key]);
+      for (const group of Object.values(importedGroups)) disposeChildren(group);
       makeRiser(groups.riser, dimensions.riserLengthMm, safeColor(colors.riser, DEFAULTS.riser));
       makeLimbs(groups.limbs, dimensions, safeColor(colors.limbs, DEFAULTS.limbs));
       makeSight(groups.sight, handedness, safeColor(colors.sight, DEFAULTS.sight));
       makeString(groups.string, dimensions, safeColor(colors.string, DEFAULTS.string));
+      const importedKinds = new Set(importedParts.map(part => part.modelKind));
+      for (const part of importedParts) {
+        const kind = part.modelKind;
+        const color = part.color ?? (kind in DEFAULTS ? DEFAULTS[kind] : "#8a8491");
+        if (kind === "riser") makeRiser(importedGroups.riser, dimensions.riserLengthMm, color);
+        else if (kind === "limbs") makeLimbs(importedGroups.limbs, dimensions, color);
+        else if (kind === "sight") makeSight(importedGroups.sight, part.handedness ?? handedness, color);
+        else if (kind === "string") makeString(importedGroups.string, dimensions, color);
+        else if (part.modelable) makeImportedAccessory(importedGroups.accessories, part);
+      }
+      for (const key of COMPONENTS) groups[key].visible = visible[key] && !importedKinds.has(key);
+      for (const key of IMPORTED_COMPONENTS) importedGroups[key].visible = visible[key];
       signature = nextSignature;
       const distance = dimensions.bowLengthMm * 1.52;
       camera.position.set(dimensions.bowLengthMm * 0.11, dimensions.bowLengthMm * 0.035, distance);
@@ -235,15 +304,20 @@ export function createBowRenderer(canvas) {
         });
       }
     }
-    for (const key of COMPONENTS) groups[key].visible = visible[key];
+    for (const key of COMPONENTS) {
+      const importedKinds = importedParts.map(part => part.modelKind);
+      groups[key].visible = visible[key] && !importedKinds.includes(key);
+    }
+    for (const key of IMPORTED_COMPONENTS) importedGroups[key].visible = visible[key];
     renderOnce();
     return dimensions;
   }
 
   function setComponentVisibility(category, isVisible) {
-    if (!groups[category]) return;
+    if (!(category in visible)) return;
     visible[category] = Boolean(isVisible);
-    groups[category].visible = visible[category];
+    if (groups[category]) groups[category].visible = visible[category];
+    if (importedGroups[category]) importedGroups[category].visible = visible[category];
     renderOnce();
   }
 
@@ -261,6 +335,7 @@ export function createBowRenderer(canvas) {
     controls.removeEventListener("change", renderOnce);
     controls.dispose();
     for (const key of COMPONENTS) disposeChildren(groups[key]);
+    for (const group of Object.values(importedGroups)) disposeChildren(group);
     webgl.dispose();
   }
 
