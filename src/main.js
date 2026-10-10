@@ -1,5 +1,5 @@
-import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, getPartCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-7";
-import { createBowRenderer } from "./renderer.js?v=navek-3d-7";
+import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, getPartCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-8";
+import { createBowRenderer } from "./renderer.js?v=navek-3d-8";
 
 const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
@@ -16,7 +16,7 @@ function previewColorName(color) {
   if (red>green*1.05&&green>blue*1.08) return "Ahşap";
   return "Model rengi";
 }
-let bowLengthInches = 68, handedness = "right", viewer = null, toastTimer, importedParts = [];
+let bowLengthInches = 68, drawLengthInches = 0, handedness = "right", viewer = null, toastTimer, importedParts = [];
 const rodLengths = { longRod: 28, shortRod: 10, extender: 4 };
 const formatPrice = price => new Intl.NumberFormat("tr-TR", { style:"currency", currency:"TRY", minimumFractionDigits:2, maximumFractionDigits:2 }).format(price);
 const modelKindLabels = { riser:"Yay gövdesi", limbs:"Kanatlar", sight:"Nişangâh", string:"Kiriş", stabilizer:"Stabilizer", vbar:"V-bar", "arrow-rest":"Ok yatağı", plunger:"Basınç düğmesi", clicker:"Clicker", "sight-pin":"Arpacık", grip:"Grip", "bow-stand":"Yay ayağı", bag:"Taşıma çantası", unmapped:"Model türü eşleştirilmedi" };
@@ -59,8 +59,9 @@ function update() {
     const importedForModel=importedParts.filter(part=>part.modelEnabled&&part.modelable);
     const importedRiser=importedForModel.find(part=>part.modelKind==="riser");
     const selectedAccessories=Object.fromEntries(["longRod","shortRod","extender","vbar"].map(category=>[category,{...selectedPart(selection,category),rodLengthInches:rodLengths[category]}]));
-    const dimensions=viewer.update({selection:{...selection,riserPart:{...selectedPart(selection,"riser"),riserLengthInches:importedRiser?.riserLengthInches??selectedPart(selection,"riser").riserLengthInches},limbsPart:selectedPart(selection,"limbs"),sightPart:selectedPart(selection,"sight"),stringPart:selectedPart(selection,"string")},colors,bowLengthInches,handedness,importedParts:importedForModel,selectedAccessories});
-    $("modelDimensions").textContent=`Yay ${dimensions.bowLengthInches}" (${Math.round(dimensions.bowLengthMm)} mm) · Gövde ${dimensions.riserLengthInches}" (${Math.round(dimensions.riserLengthMm)} mm) · Kanatlar ${dimensions.limbLengthInches.toFixed(1)}" · Uzun rod ${rodLengths.longRod}" · Kısa rod ${rodLengths.shortRod}" · Extender ${rodLengths.extender}"`;
+    const dimensions=viewer.update({selection:{...selection,riserPart:{...selectedPart(selection,"riser"),riserLengthInches:importedRiser?.riserLengthInches??selectedPart(selection,"riser").riserLengthInches},limbsPart:selectedPart(selection,"limbs"),sightPart:selectedPart(selection,"sight"),stringPart:selectedPart(selection,"string"),clickerPart:selectedPart(selection,"clicker")},colors,bowLengthInches,drawLengthInches,handedness,importedParts:importedForModel,selectedAccessories});
+    $("drawLengthValue").textContent=drawLengthInches===0?"Gerili":`Çekişte · ${drawLengthInches} inç`;
+    $("modelDimensions").textContent=`Yay ${dimensions.bowLengthInches}" (${Math.round(dimensions.bowLengthMm)} mm) · Gövde ${dimensions.riserLengthInches}" (${Math.round(dimensions.riserLengthMm)} mm) · Kanatlar ${dimensions.limbLengthInches.toFixed(1)}" · Kiriş ${drawLengthInches===0?"gerili":"çekişte"} · Uzun rod ${rodLengths.longRod}" · Kısa rod ${rodLengths.shortRod}" · Extender ${rodLengths.extender}"`;
   }
 }
 
@@ -114,12 +115,13 @@ async function importBasketFile(file){
 }
 
 function showToast(message){const toast=$("toast");toast.textContent=message;toast.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove("show"),2200);}
-function summaryText(){return [...Object.entries(partMeta).map(([category,meta])=>{const part=selectedPart(selection,category);return `${meta.title}: ${part.label}${part.price?` (${formatPrice(part.price)})`:" (fiyat doğrulanmadı)"}${part.colors.length?` · görsel önizleme: ${colorNames[colors[category]]??"renk"} (satıcı rengi değil)`:""} · ${part.source}`;}),`3D model: ${bowLengthInches} inç · ${handedness === "right" ? "sağ el" : "sol el"}`,`Ölçekli parametrik önizleme; üretici CAD modeli değildir.`,`Ürün fiyatları kontrol tarihi: 10.10.2026; değişebilir.`,`Tahmini toplam (fiyatı bilinen seçili parçalar): ${formatPrice(calculateTotal(selection))}`,`Uyumluluk: ${evaluateCompatibility(selection).label}`].join("\n");}
+function summaryText(){return [...Object.entries(partMeta).map(([category,meta])=>{const part=selectedPart(selection,category);return `${meta.title}: ${part.label}${part.price?` (${formatPrice(part.price)})`:" (fiyat doğrulanmadı)"}${part.colors.length?` · görsel önizleme: ${colorNames[colors[category]]??"renk"} (satıcı rengi değil)`:""} · ${part.source}`;}),`3D model: ${bowLengthInches} inç · ${handedness === "right" ? "sağ el" : "sol el"} · kiriş çekişi ${drawLengthInches} inç`,`Ölçekli parametrik önizleme; üretici CAD modeli değildir.`,`Ürün fiyatları kontrol tarihi: 10.10.2026; değişebilir.`,`Tahmini toplam (fiyatı bilinen seçili parçalar): ${formatPrice(calculateTotal(selection))}`,`Uyumluluk: ${evaluateCompatibility(selection).label}`].join("\n");}
 
-$("shareButton").addEventListener("click",async()=>{const params=new URLSearchParams({...selection,...Object.fromEntries(Object.entries(colors).map(([key,value])=>[`color-${key}`,value])),bowLength:String(bowLengthInches),hand:handedness});const url=new URL(location.href);url.hash=params.toString();try{await navigator.clipboard.writeText(url.toString());showToast("Yapılandırma bağlantısı kopyalandı.");}catch{location.hash=params.toString();showToast("Yapılandırma bağlantısı adres çubuğuna eklendi.");}});
-$("resetConfig").addEventListener("click",()=>{Object.assign(selection,initialSelection);Object.assign(colors,initialColors);Object.assign(rodLengths,{longRod:28,shortRod:10,extender:4});bowLengthInches=68;handedness="right";clearImportedBasket();$("bowLength").value="68";$("handedness").value="right";document.querySelectorAll("[data-component]").forEach(input=>{input.checked=true;viewer?.setComponentVisibility(input.dataset.component,true);});history.replaceState(null,"",location.pathname);update();});
+$("shareButton").addEventListener("click",async()=>{const params=new URLSearchParams({...selection,...Object.fromEntries(Object.entries(colors).map(([key,value])=>[`color-${key}`,value])),bowLength:String(bowLengthInches),drawLength:String(drawLengthInches),hand:handedness});const url=new URL(location.href);url.hash=params.toString();try{await navigator.clipboard.writeText(url.toString());showToast("Yapılandırma bağlantısı kopyalandı.");}catch{location.hash=params.toString();showToast("Yapılandırma bağlantısı adres çubuğuna eklendi.");}});
+$("resetConfig").addEventListener("click",()=>{Object.assign(selection,initialSelection);Object.assign(colors,initialColors);Object.assign(rodLengths,{longRod:28,shortRod:10,extender:4});bowLengthInches=68;drawLengthInches=0;handedness="right";clearImportedBasket();$("bowLength").value="68";$("drawLength").value="0";$("handedness").value="right";document.querySelectorAll("[data-component]").forEach(input=>{input.checked=true;viewer?.setComponentVisibility(input.dataset.component,true);});history.replaceState(null,"",location.pathname);update();});
 $("resetView").addEventListener("click",()=>viewer?.resetView());
 $("bowLength").addEventListener("change",event=>{bowLengthInches=Number(event.currentTarget.value);update();});
+$("drawLength").addEventListener("input",event=>{drawLengthInches=Number(event.currentTarget.value);update();});
 $("handedness").addEventListener("change",event=>{handedness=event.currentTarget.value;update();});
 document.querySelectorAll("[data-component]").forEach(input=>input.addEventListener("change",event=>viewer?.setComponentVisibility(event.currentTarget.dataset.component,event.currentTarget.checked)));
 $("basketPdf").addEventListener("change",event=>importBasketFile(event.currentTarget.files?.[0]));
@@ -135,6 +137,6 @@ $("summaryButton").addEventListener("click",()=>{$("summaryContent").innerHTML=s
 $("closeDialog").addEventListener("click", () => $("summaryDialog").close());
 $("copySummary").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(summaryText());showToast("Özet kopyalandı.");$("summaryDialog").close();}catch{showToast("Kopyalamaya izin verilmedi.");}});
 
-function readHash(){const params=new URLSearchParams(location.hash.slice(1));for(const category of Object.keys(partCatalog))if(partCatalog[category].some(part=>part.id===params.get(category)))selection[category]=params.get(category);for(const category of Object.keys(colors))if(params.has(`color-${category}`)&&/^#[\da-f]{6}$/i.test(params.get(`color-${category}`)))colors[category]=params.get(`color-${category}`);if([66,68,70].includes(Number(params.get("bowLength"))))bowLengthInches=Number(params.get("bowLength"));if(["left","right"].includes(params.get("hand")))handedness=params.get("hand");$("bowLength").value=String(bowLengthInches);$("handedness").value=handedness;}
+function readHash(){const params=new URLSearchParams(location.hash.slice(1));for(const category of Object.keys(partCatalog))if(partCatalog[category].some(part=>part.id===params.get(category)))selection[category]=params.get(category);for(const category of Object.keys(colors))if(params.has(`color-${category}`)&&/^#[\da-f]{6}$/i.test(params.get(`color-${category}`)))colors[category]=params.get(`color-${category}`);if([66,68,70].includes(Number(params.get("bowLength"))))bowLengthInches=Number(params.get("bowLength"));if([0,2,4,6,8,10,12,14,16,18,20,22,24,26,28].includes(Number(params.get("drawLength"))))drawLengthInches=Number(params.get("drawLength"));if(["left","right"].includes(params.get("hand")))handedness=params.get("hand");$("bowLength").value=String(bowLengthInches);$("drawLength").value=String(drawLengthInches);$("handedness").value=handedness;}
 readHash();
 update();

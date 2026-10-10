@@ -132,7 +132,7 @@ function makeRiser(group, lengthMm, color, part = {}) {
   }
 }
 
-function buildLimb(sign, dimensions, style = "generic") {
+function buildLimb(sign, dimensions, style = "generic", drawMm = 0) {
   const rings = 56, sides = 12, positions = [], indices = [];
   const profile = ({
     "carbon-foam": [0.93, 1.04, 0.94], "bamboo-laminate": [1.04, 0.94, 1.12], "carbon-laminate": [0.96, 1.08, 1.02],
@@ -142,7 +142,7 @@ function buildLimb(sign, dimensions, style = "generic") {
   const sample = t => ({
     y: sign * (dimensions.riserLengthMm / 2 - 4 + (dimensions.limbTipOffsetMm - dimensions.riserLengthMm / 2) * t),
     x: 1 + (style.includes("formula") ? 20 : 14) * profile[2] * Math.sin(Math.PI * t) - 4 * t,
-    z: 2 + (style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102) * Math.sin(Math.PI * t) + 28 * t,
+    z: 2 + (style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102) * Math.sin(Math.PI * t) + 28 * t + drawMm * (0.12 * t + 0.11 * Math.sin(Math.PI * t)),
     width: THREE.MathUtils.lerp((style.includes("foam") ? 27 : style.includes("b1") ? 34 : 31) * profile[0], (style.includes("foam") ? 7.5 : 8.5) * profile[0], Math.pow(t, 0.84)),
     depth: THREE.MathUtils.lerp((style.includes("foam") ? 7 : 8.5) * profile[1], 3.3 * profile[1], t)
   });
@@ -160,13 +160,13 @@ function buildLimb(sign, dimensions, style = "generic") {
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); geo.setIndex(indices); geo.computeVertexNormals();
   return { geo, sample };
 }
-function makeLimbs(group, dimensions, color, part = {}) {
+function makeLimbs(group, dimensions, color, part = {}, drawMm = 0) {
   const style = part.modelStyle ?? "generic";
   const finish = material(color, { metalness: 0.24, roughness: 0.3, clearcoat: 0.62 });
   const laminate = material("#4b344f", { metalness: 0.15, roughness: 0.44 });
   const edge = material("#cbb6e8", { metalness: 0.53, roughness: 0.24 });
   for (const sign of [-1, 1]) {
-    const { geo, sample } = buildLimb(sign, dimensions, style);
+    const { geo, sample } = buildLimb(sign, dimensions, style, drawMm);
     const limb = new THREE.Mesh(geo, finish.clone()); limb.castShadow = true; group.add(limb);
     for (const side of [-1, 1]) {
       const points = [];
@@ -223,25 +223,49 @@ function makeSight(group, handedness, color, part = {}) {
   const pin = new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 12), material("#ff795f", { metalness: 0.08, roughness: 0.5 }));
   pin.position.set(side * (headX + apertureRadius), 32, 55); group.add(pin);
 }
-function makeString(group, dimensions, color, part = {}) {
+function makeString(group, dimensions, color, part = {}, drawMm = 0) {
   const tip = dimensions.limbTipOffsetMm;
-  const points = [new THREE.Vector3(-3, -tip, 30), new THREE.Vector3(0, 0, 30), new THREE.Vector3(3, tip, 30)];
+  const tipZ = 30 + drawMm * 0.12;
+  const points = [new THREE.Vector3( -3, -tip, tipZ), new THREE.Vector3(0, 0, tipZ + drawMm), new THREE.Vector3(3, tip, tipZ)];
   const curve = new THREE.CatmullRomCurve3(points);
   const style = part.modelStyle ?? "generic";
   const thickness = style.includes("dacron") || style.includes("b50") ? 2.05 : style.includes("fastflight") ? 1.35 : style.includes("8125") ? 1.5 : 1.7;
   const stringMat = material(color, { metalness: 0.08, roughness: 0.24, clearcoat: 0.65 });
-  const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 2, thickness, 8, false), stringMat); group.add(line);
+  const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, thickness, 8, false), stringMat); group.add(line);
   const serving = material(style.includes("dacron") ? "#f0ece4" : style.includes("b50") ? "#9a7c56" : "#29262f", { metalness: 0.22, roughness: 0.58 });
-  const centre = new THREE.Mesh(new THREE.CylinderGeometry(thickness + 1.4, thickness + 1.4, style.includes("652x") ? 118 : 104, 12), serving); centre.position.set(0, 1, 31); group.add(centre);
+  const centre = new THREE.Mesh(new THREE.CylinderGeometry(thickness + 1.4, thickness + 1.4, style.includes("652x") ? 118 : 104, 12), serving); centre.position.set(0, 1, tipZ + drawMm * 0.76); group.add(centre);
   if (style.includes("8125") || style.includes("fastflight")) {
     for (const offset of [-2.6, 2.6]) {
-      const strand = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(point => point.clone().add(new THREE.Vector3(offset, 0, -1)))), 2, 0.65, 6, false), material("#91879a", { metalness: 0.12, roughness: 0.4 }));
+      const strand = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(point => point.clone().add(new THREE.Vector3(offset, 0, -1)))), 48, 0.65, 6, false), material("#91879a", { metalness: 0.12, roughness: 0.4 }));
       group.add(strand);
     }
   }
   addBox(group, [37, 5, 20], [42, -6, 40], material("#d9d4df", { metalness: 0.62, roughness: 0.25 }));
   addBox(group, [4, 28, 6], [27, 4, 44], material("#17141d", { metalness: 0.55, roughness: 0.32 }));
-  const nock = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), material("#f3c96e", { metalness: 0.18, roughness: 0.3 })); nock.position.set(0, 0, 35); group.add(nock);
+  const nock = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), material("#f3c96e", { metalness: 0.18, roughness: 0.3 })); nock.position.set(0, 0, tipZ + drawMm); group.add(nock);
+}
+
+function makeClicker(group, part = {}, handedness = "right") {
+  const style = part.modelStyle ?? "magnetic-clicker";
+  const side = handedness === "left" ? -1 : 1;
+  const metal = material(part.color ?? "#aeb0b8", { metalness: 0.82, roughness: 0.22 });
+  const dark = material("#25232b", { metalness: 0.68, roughness: 0.26 });
+  const mountX = side * 38;
+  const extension = style === "extender-clicker" ? 38 : 0;
+  addBox(group, [13, 18, 8], [mountX, 5, 49], dark);
+  addCylinder(group, 4.2, 8, [mountX + side * 8, 5, 49], metal, "x");
+  if (style === "magnetic-clicker") {
+    addCylinder(group, 5.5, 5, [mountX + side * 11, 13, 51], dark, "x");
+    addCylinder(group, 3.2, 3, [mountX + side * 14, 13, 51], metal, "x");
+  } else if (style === "beiter-clicker") {
+    addBox(group, [10, 22, 9], [mountX + side * 5, 11, 49], metal);
+    addCylinder(group, 3.5, 7, [mountX + side * 12, 11, 49], dark, "x");
+  } else {
+    addBox(group, [8, 38, 8], [mountX + side * 5, 18, 49], metal);
+  }
+  // Thin blade projects over the arrow from the riser; the extra plate extends the adjustment range.
+  addBox(group, [1.8, 1.8, 124 + extension], [mountX - side * 5, -3, 111 + extension / 2], metal);
+  addBox(group, [2, 3, 9], [mountX - side * 5, -3, 50], metal);
 }
 
 function rodLength(product, fallback) {
@@ -326,8 +350,7 @@ function makeImportedAccessory(group, part) {
   } else if (part.modelKind === "plunger") {
     addCylinder(group, 7, 28, [39, -8, 46], material(color), "x");
   } else if (part.modelKind === "clicker") {
-    addBox(group, [3, 138, 3], [37, 72, 52], material(color));
-    addBox(group, [12, 7, 5], [37, 4, 52], material(color));
+    makeClicker(group, { ...part, color }, part.handedness ?? "right");
   } else if (part.modelKind === "grip") addBox(group, [24, 92, 42], [-5, 0, 3], material(color, { metalness: 0.08, roughness: 0.6 }));
   else if (part.modelKind === "sight-pin") {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(8, 2, 8, 28), material(color)); ring.position.set(222, 19, 53); group.add(ring);
@@ -381,28 +404,30 @@ export function createBowRenderer(canvas) {
   }
   const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(canvas); window.addEventListener("resize", resize);
 
-  function update({ selection, colors, bowLengthInches = 68, handedness = "right", importedParts = [], selectedAccessories = {} }) {
+  function update({ selection, colors, bowLengthInches = 68, drawLengthInches = 0, handedness = "right", importedParts = [], selectedAccessories = {} }) {
     const importedRiser = importedParts.find(part => part.modelKind === "riser");
     const riserLength = Number(importedRiser?.riserLengthInches) || getRiserLengthInches(selection.riserPart);
     const dimensions = calculateModelDimensions(riserLength, bowLengthInches);
+    const drawMm = Math.max(0, Math.min(28, Number(drawLengthInches) || 0)) * 25.4;
     const detail = Object.fromEntries(Object.entries(selectedAccessories).map(([key, part]) => [key, [part?.id, part?.dimensions, part?.rodLengthInches].join(":")]));
     const importedSignature = importedParts.map(part => [part.id, part.modelKind, part.label, part.color, part.riserLengthInches].join(":" )).join(";");
-    const next = [selection.riser, selection.limbs, selection.sight, selection.string, dimensions.bowLengthInches, dimensions.riserLengthInches, handedness, JSON.stringify(colors), JSON.stringify(detail), importedSignature].join("|");
+    const next = [selection.riser, selection.limbs, selection.sight, selection.string, selection.clickerPart?.id, selection.clickerPart?.modelStyle, dimensions.bowLengthInches, dimensions.riserLengthInches, drawMm, handedness, JSON.stringify(colors), JSON.stringify(detail), importedSignature].join("|");
     if (signature !== next) {
       COMPONENTS.forEach(key => disposeChildren(groups[key]));
       Object.values(importedGroups).forEach(disposeChildren);
       makeRiser(groups.riser, dimensions.riserLengthMm, safeColor(colors.riser, DEFAULTS.riser), selection.riserPart);
-      makeLimbs(groups.limbs, dimensions, safeColor(colors.limbs, DEFAULTS.limbs), selection.limbsPart);
+      makeLimbs(groups.limbs, dimensions, safeColor(colors.limbs, DEFAULTS.limbs), selection.limbsPart, drawMm);
       makeSight(groups.sight, handedness, safeColor(colors.sight, DEFAULTS.sight), selection.sightPart);
-      makeString(groups.string, dimensions, safeColor(colors.string, DEFAULTS.string), selection.stringPart);
+      makeString(groups.string, dimensions, safeColor(colors.string, DEFAULTS.string), selection.stringPart, drawMm);
       makeStabilization(groups.accessories, selectedAccessories, colors);
       const importedKinds = new Set(importedParts.map(part => part.modelKind));
+      if (!importedKinds.has("clicker")) makeClicker(groups.accessories, { ...selection.clickerPart, color: colors.clicker }, handedness);
       for (const part of importedParts) {
         const kind = part.modelKind, color = part.color ?? (kind in DEFAULTS ? DEFAULTS[kind] : "#8a8491");
         if (kind === "riser") makeRiser(importedGroups.riser, dimensions.riserLengthMm, color, part);
-        else if (kind === "limbs") makeLimbs(importedGroups.limbs, dimensions, color, part);
+        else if (kind === "limbs") makeLimbs(importedGroups.limbs, dimensions, color, part, drawMm);
         else if (kind === "sight") makeSight(importedGroups.sight, part.handedness ?? handedness, color, part);
-        else if (kind === "string") makeString(importedGroups.string, dimensions, color, part);
+        else if (kind === "string") makeString(importedGroups.string, dimensions, color, part, drawMm);
         else if (part.modelable) makeImportedAccessory(importedGroups.accessories, part);
       }
       for (const key of COMPONENTS.slice(0, 4)) groups[key].visible = visible[key] && !importedKinds.has(key);

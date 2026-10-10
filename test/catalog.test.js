@@ -4,7 +4,7 @@ import { calculateTotal, evaluateCompatibility, getPartCompatibility, initialSel
 
 test("default Navek setup has matching ILF standards and a complete Olympic bow", () => {
   assert.equal(evaluateCompatibility(initialSelection).compatible, true);
-  assert.deepEqual(Object.keys(initialSelection), ["riser", "limbs", "sight", "longRod", "shortRod", "extender", "vbar", "string"]);
+  assert.deepEqual(Object.keys(initialSelection), ["riser", "limbs", "sight", "longRod", "shortRod", "extender", "vbar", "clicker", "string"]);
   assert.deepEqual(Object.keys(partMeta), Object.keys(initialSelection));
 });
 
@@ -57,4 +57,12 @@ test("long and short rod length controls are separate model-only variants", () =
     assert.deepEqual(partCatalog[category][0].rodLengths, expected);
     assert.equal(partCatalog[category][0].rodLengthInches, expected[0] === 26 ? 28 : expected[0] === 3 ? 4 : 10);
   }
+});
+
+test("a Navek clicker is selected by default and has distinct configurable 3D product models", () => {
+  assert.equal(selectedPart(initialSelection, "clicker").id, "avalon-clicker-sight-hole");
+  assert.equal(partCatalog.clicker.length, 3);
+  assert.equal(new Set(partCatalog.clicker.map(part => part.modelStyle)).size, 3);
+  assert.ok(partCatalog.clicker.every(part => part.source.startsWith("https://www.naveksport.com.tr/")));
+  assert.ok(Math.abs(calculateTotal({ ...initialSelection, clicker: "beiter-clicker-standard" }) - calculateTotal(initialSelection) - (1252.8 - 693.6)) < 1e-8);
 });

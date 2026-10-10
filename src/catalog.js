@@ -86,6 +86,11 @@ export const partCatalog = {
     product({ id: "wns-vbar-smc", label: "WNS V-Bar Carbon SMC", price: 3025.44, mount: "SMC rod sistemi", slug: "wns-v-bar-carbon-smc", dimensions: '40° / 45°', previewAngleDegrees: 45, material: "Full karbon" }),
     product({ id: "winwin-vbar-cxa", label: "Win&Win V-Bar CX-A Carbon", price: 3966.24, mount: "Standart rod bağlantısı", slug: "winwin-v-bar-cx-a-carbon", dimensions: "Karbon V-bar · önizleme 40°", previewAngleDegrees: 40, material: "Win&Win" })
   ],
+  clicker: [
+    product({ id: "avalon-clicker-sight-hole", label: "Avalon Manyetik Clicker · sight hole", price: 693.6, mount: "Nişangâh deliği", slug: "avalon-klikir-sight-hole-mount", dimensions: "Sağ / sol el · ayarlanabilir", material: "Manyetik clicker · metal blade", modelStyle: "magnetic-clicker", colors: ["#25232b", "#aeb0b8"] }),
+    product({ id: "beiter-clicker-standard", label: "Beiter Clicker Standart 0.30", price: 1252.8, mount: "Metrik / inç vida seçenekleri", slug: "beiter-klikir-standart-19963", dimensions: "Ayarlanabilir plaka", material: "Clicker · 0.30 mm blade", modelStyle: "beiter-clicker", colors: ["#25232b", "#aeb0b8"] }),
+    product({ id: "avalon-clicker-sight-extender", label: "Avalon Manyetik Clicker · sight extender", price: 1106.4, mount: "Nişangâh üzerine", slug: "avalon-manyetik-klikir-klasik-sight-extender-cift-tarafli", dimensions: "Çift taraflı · sağ / sol el", material: "Manyetik clicker · uzatma plakası", modelStyle: "extender-clicker", colors: ["#25232b", "#aeb0b8"] })
+  ],
   string: [
     product({ id: "atan-652x", label: "Atan 652X Recurve", price: 403.2, mount: "Olimpik klasik yay", slug: "atan-hazir-kiris-ipi-652x-recurve-bow", dimensions: 'Yay boyu ürün varyantından seçilir', material: "652X hazır kiriş" }),
     product({ id: "atan-8125", label: "Atan 8125 Recurve", price: 1322.88, mount: "Olimpik klasik yay", slug: "atan-hazir-kiris-ipi-8125-recurve-bow", dimensions: "Yay boyu ürün varyantından seçilir", material: "8125 hazır kiriş" }),
@@ -103,10 +108,11 @@ export const partMeta = {
   shortRod: { title: "Kısa rod", hint: "Yan stabilizer · V-bar ile bağlanır", icon: "╱" },
   extender: { title: "Extender", hint: "Gövde ile V-bar arasındaki uzatma", icon: "⇢" },
   vbar: { title: "V-bar", hint: "Yan rod bağlantısı", icon: "Y" },
+  clicker: { title: "Clicker", hint: "Yay üzerine takılan çekiş kontrol parçası", icon: "⌁" },
   string: { title: "Kiriş", hint: "Farklı malzeme ve fiyat seçenekleri", icon: "╱" }
 };
-export const initialSelection = { riser: "kinetic-lancer-two-tone-25", limbs: "wns-explore-w1", sight: "avalon-tyro-first", longRod: "helix-firefly-long", shortRod: "helix-firefly-short", extender: "helix-firefly-extender", vbar: "ases-vbar-unibar", string: "atan-652x" };
-export const initialColors = { riser: "#28272b", limbs: "#c6a97e", sight: "#28272b", longRod: "#1c1e24", shortRod: "#1c1e24", extender: "#1c1e24", vbar: "#8a8d96", string: "#f4f0e8" };
+export const initialSelection = { riser: "kinetic-lancer-two-tone-25", limbs: "wns-explore-w1", sight: "avalon-tyro-first", longRod: "helix-firefly-long", shortRod: "helix-firefly-short", extender: "helix-firefly-extender", vbar: "ases-vbar-unibar", clicker: "avalon-clicker-sight-hole", string: "atan-652x" };
+export const initialColors = { riser: "#28272b", limbs: "#c6a97e", sight: "#28272b", longRod: "#1c1e24", shortRod: "#1c1e24", extender: "#1c1e24", vbar: "#8a8d96", clicker: "#aeb0b8", string: "#f4f0e8" };
 
 export function selectedPart(selection, category) {
   return partCatalog[category].find(part => part.id === selection[category]) ?? partCatalog[category][0];
