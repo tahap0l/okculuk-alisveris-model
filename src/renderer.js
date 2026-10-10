@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js?v=3d-model-3";
 
-const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", vbar: "#9b8cae" };
+const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", extender: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
 const IMPORTED_COMPONENTS = [...COMPONENTS];
 const safeColor = (value, fallback) => /^#[\da-f]{6}$/i.test(value ?? "") ? value : fallback;
@@ -40,7 +40,13 @@ function addRod(group, start, end, radius, mat, tipRadius = radius) {
   return mesh;
 }
 
-function makeRiser(group, lengthMm, color) {
+function makeRiser(group, lengthMm, color, part = {}) {
+  const style = part.modelStyle ?? "generic";
+  const profile = ({
+    "astral-cast": [0.95, 0.96], "evolium-compact": [0.82, 0.86], "scopus-cnc": [1.08, 0.94], "lancer-cast": [0.99, 1.02],
+    "lancer-two-tone": [1.02, 1.00], "sovren-cnc": [1.12, 0.92], "alfa-cutout-23": [1.12, 0.92], "alfa-cutout-25": [1.18, 0.9], "atf-dx-damped": [1.06, 1.05],
+    "winex-angular": [0.93, 1.1], "formula-offset": [1.18, 0.94]
+  })[style] ?? [1, 1];
   const half = lengthMm / 2;
   const outline = new THREE.Shape();
   outline.moveTo(-25, -half + 30);
@@ -64,7 +70,9 @@ function makeRiser(group, lengthMm, color) {
   outline.closePath();
   const shape = new THREE.ExtrudeGeometry(outline, { depth: 66, bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: 4, bevelThickness: 4, curveSegments: 16 });
   shape.translate(0, 0, -33);
-  const shell = new THREE.Mesh(shape, material(color, { metalness: 0.78, roughness: 0.24, clearcoat: 0.42 }));
+  shape.scale(profile[0], 1, profile[1]);
+  const shellColor = style === "lancer-two-tone" ? "#f1f0ec" : color;
+  const shell = new THREE.Mesh(shape, material(shellColor, { metalness: 0.78, roughness: 0.24, clearcoat: 0.42 }));
   shell.castShadow = true;
   group.add(shell);
 
@@ -75,6 +83,7 @@ function makeRiser(group, lengthMm, color) {
   gripShape.lineTo(28, 36); gripShape.lineTo(31, -37); gripShape.closePath();
   const gripGeo = new THREE.ExtrudeGeometry(gripShape, { depth: 34, bevelEnabled: true, bevelSegments: 5, steps: 1, bevelSize: 5, bevelThickness: 5 });
   gripGeo.translate(0, 0, -17);
+  gripGeo.scale(profile[0], 1, profile[1]);
   const grip = new THREE.Mesh(gripGeo, material("#4e382e", { metalness: 0.08, roughness: 0.62, clearcoat: 0.08 }));
   grip.castShadow = true; group.add(grip);
 
@@ -95,16 +104,47 @@ function makeRiser(group, lengthMm, color) {
   addCylinder(group, 7, 22, [40, -9, 49], steel, "x");
   const slot = addBox(group, [4, 74, 4], [-5, 95, 36], accent);
   slot.material.userData.categoryNeutral = true;
+  const faceAccent = material(color, { metalness: 0.82, roughness: 0.2, clearcoat: 0.48 });
+  if (style === "lancer-two-tone") {
+    addBox(group, [9, lengthMm * 0.57, 3], [18, 0, 35], faceAccent);
+    addBox(group, [9, lengthMm * 0.57, 3], [18, 0, -35], faceAccent);
+    for (const sign of [-1, 1]) addCylinder(group, 7, 3, [0, sign * (half - 39), 37], faceAccent, "z");
+  } else if (style.includes("cnc") || style === "winex-angular") {
+    for (const sign of [-1, 1]) {
+      addBox(group, [5, 92, 3], [18, sign * 98, 35], faceAccent);
+      addCylinder(group, 6, 4, [22, sign * 112, 38], steel, "z");
+    }
+  }
+  if (style === "atf-dx-damped") {
+    for (const y of [-90, 0, 90]) {
+      addCylinder(group, 12, 5, [-8, y, 37], dark, "z");
+      addCylinder(group, 5, 6, [-8, y, 41], accent, "z");
+    }
+  }
+  if (style === "formula-offset") {
+    addBox(group, [18, 76, 24], [16, half - 54, 1], faceAccent);
+    addBox(group, [18, 76, 24], [16, -half + 54, 1], faceAccent);
+    addBox(group, [10, 148, 10], [24, -13, -39], dark);
+  }
+  if (style.startsWith("alfa-cutout") || style === "astral-cast" || style === "evolium-compact") {
+    const scale = style === "evolium-compact" ? 0.78 : style.startsWith("alfa-cutout") ? (style.endsWith("23") ? 0.94 : 1.18) : 1;
+    addBox(group, [7, 82 * scale, 4], [25, 0, 35], faceAccent);
+  }
 }
 
-function buildLimb(sign, dimensions) {
+function buildLimb(sign, dimensions, style = "generic") {
   const rings = 56, sides = 12, positions = [], indices = [];
+  const profile = ({
+    "carbon-foam": [0.93, 1.04, 0.94], "bamboo-laminate": [1.04, 0.94, 1.12], "carbon-laminate": [0.96, 1.08, 1.02],
+    "wood-fiberglass": [1.08, 0.98, 1.06], "maple-fiber": [1.03, 1.01, 0.98], "maple-fiberglass": [1.1, 0.96, 1.08],
+    "b1-laminate": [1.12, 0.92, 1.02], "carbon-foam-formula": [0.9, 1.15, 0.92], "carbon-wood-formula": [1.02, 1.12, 1.06]
+  })[style] ?? [1, 1, 1];
   const sample = t => ({
     y: sign * (dimensions.riserLengthMm / 2 - 4 + (dimensions.limbTipOffsetMm - dimensions.riserLengthMm / 2) * t),
-    x: 1 + 14 * Math.sin(Math.PI * t) - 4 * t,
-    z: 2 + 102 * Math.sin(Math.PI * t) + 28 * t,
-    width: THREE.MathUtils.lerp(31, 8.5, Math.pow(t, 0.84)),
-    depth: THREE.MathUtils.lerp(8.5, 3.3, t)
+    x: 1 + (style.includes("formula") ? 20 : 14) * profile[2] * Math.sin(Math.PI * t) - 4 * t,
+    z: 2 + (style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102) * Math.sin(Math.PI * t) + 28 * t,
+    width: THREE.MathUtils.lerp((style.includes("foam") ? 27 : style.includes("b1") ? 34 : 31) * profile[0], (style.includes("foam") ? 7.5 : 8.5) * profile[0], Math.pow(t, 0.84)),
+    depth: THREE.MathUtils.lerp((style.includes("foam") ? 7 : 8.5) * profile[1], 3.3 * profile[1], t)
   });
   for (let i = 0; i <= rings; i++) {
     const t = i / rings, s = sample(t);
@@ -120,12 +160,13 @@ function buildLimb(sign, dimensions) {
   const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3)); geo.setIndex(indices); geo.computeVertexNormals();
   return { geo, sample };
 }
-function makeLimbs(group, dimensions, color) {
+function makeLimbs(group, dimensions, color, part = {}) {
+  const style = part.modelStyle ?? "generic";
   const finish = material(color, { metalness: 0.24, roughness: 0.3, clearcoat: 0.62 });
   const laminate = material("#4b344f", { metalness: 0.15, roughness: 0.44 });
   const edge = material("#cbb6e8", { metalness: 0.53, roughness: 0.24 });
   for (const sign of [-1, 1]) {
-    const { geo, sample } = buildLimb(sign, dimensions);
+    const { geo, sample } = buildLimb(sign, dimensions, style);
     const limb = new THREE.Mesh(geo, finish.clone()); limb.castShadow = true; group.add(limb);
     for (const side of [-1, 1]) {
       const points = [];
@@ -142,37 +183,62 @@ function makeLimbs(group, dimensions, color) {
     }
     const tip = sample(1);
     addBox(group, [17, 17, 10], [tip.x, tip.y - sign * 3, tip.z], material("#372d40", { metalness: 0.62, roughness: 0.3 }));
+    const inlayColor = style.includes("bamboo") || style.includes("wood") || style.includes("maple") ? "#9a7447" : style.includes("foam") || style.includes("carbon") ? "#25232a" : "#d6cbdc";
+    const inlay = material(inlayColor, { metalness: 0.42, roughness: 0.32 });
+    const seamPoints = [];
+    for (let i = 2; i <= 36; i++) { const t = i / 40, s = sample(t); seamPoints.push(new THREE.Vector3(s.x, s.y, s.z + s.depth * 0.92)); }
+    group.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(seamPoints), 48, style.includes("formula") ? 1.8 : 1.1, 5, false), inlay));
+    if (style.includes("formula")) {
+      const ferrule = material("#c3c0c8", { metalness: 0.88, roughness: 0.18 });
+      addBox(group, [27, 28, 14], [tip.x, tip.y - sign * 8, tip.z + 3], ferrule);
+    }
   }
 }
 
-function makeSight(group, handedness, color) {
+function makeSight(group, handedness, color, part = {}) {
+  const style = part.modelStyle ?? "generic";
   const side = handedness === "left" ? -1 : 1;
   const railMat = material(color, { metalness: 0.78, roughness: 0.2, clearcoat: 0.32 });
   const black = material("#211d27", { metalness: 0.82, roughness: 0.23 });
   const scale = material("#d6cfdf", { metalness: 0.65, roughness: 0.24 });
   const apertureMat = material(color, { metalness: 0.82, roughness: 0.18 });
-  addBox(group, [194, 8, 8], [side * 111, 30, 51], railMat);
-  addBox(group, [38, 48, 25], [side * 203, 29, 52], black);
-  addBox(group, [8, 96, 9], [side * 203, 23, 70], railMat);
-  addBox(group, [8, 26, 9], [side * 203, 61, 70], scale);
-  for (let y = -14; y <= 64; y += 9) addBox(group, [3, 1.6, 2], [side * 207, y, 78], scale);
-  addCylinder(group, 9, 18, [side * 203, 2, 52], black, "x");
-  addCylinder(group, 7, 21, [side * 203, 56, 52], railMat, "x");
-  const aperture = new THREE.Mesh(new THREE.TorusGeometry(27, 3.4, 12, 56), apertureMat);
-  aperture.position.set(side * 250, 32, 51); group.add(aperture);
-  const inner = new THREE.Mesh(new THREE.TorusGeometry(20, 1.1, 8, 48), scale);
+  const profile = ({ "tyro-adjustable": [166, 181, 22], "avalon-carbon": [205, 220, 27], "spr-100-micro": [192, 210, 28], "spr-200-micro": [230, 240, 31], "sja-short": [135, 166, 22] })[style] ?? [185, 203, 27];
+  const railLength = profile[0], headX = profile[1], apertureRadius = profile[2];
+  addBox(group, [railLength, style.includes("carbon") ? 7 : 9, style.includes("carbon") ? 6 : 9], [side * (railLength * 0.55), 30, 51], railMat);
+  addBox(group, [style.includes("spr-200") ? 48 : 38, 48, 25], [side * headX, 29, 52], black);
+  addBox(group, [8, style.includes("spr-200") ? 122 : 96, 9], [side * headX, 23, 70], railMat);
+  addBox(group, [8, 26, 9], [side * headX, 61, 70], scale);
+  const tickStep = style.includes("spr-200") ? 6 : 9;
+  for (let y = -14; y <= (style.includes("spr-200") ? 82 : 64); y += tickStep) addBox(group, [3, 1.6, 2], [side * (headX + 4), y, 78], scale);
+  addCylinder(group, style.includes("spr-200") ? 12 : 9, 18, [side * headX, 2, 52], black, "x");
+  addCylinder(group, 7, 21, [side * headX, 56, 52], railMat, "x");
+  if (style.includes("spr-100") || style.includes("spr-200")) {
+    addCylinder(group, 10, 16, [side * (headX - 10), 45, 55], black, "x");
+    addCylinder(group, 5, 18, [side * (headX - 10), 45, 61], scale, "x");
+  }
+  const aperture = new THREE.Mesh(new THREE.TorusGeometry(apertureRadius, 3.4, 12, 56), apertureMat);
+  aperture.position.set(side * (headX + apertureRadius), 32, 51); group.add(aperture);
+  const inner = new THREE.Mesh(new THREE.TorusGeometry(apertureRadius * 0.74, 1.1, 8, 48), scale);
   inner.position.copy(aperture.position); group.add(inner);
   const pin = new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 12), material("#ff795f", { metalness: 0.08, roughness: 0.5 }));
-  pin.position.set(side * 250, 32, 55); group.add(pin);
+  pin.position.set(side * (headX + apertureRadius), 32, 55); group.add(pin);
 }
-function makeString(group, dimensions, color) {
+function makeString(group, dimensions, color, part = {}) {
   const tip = dimensions.limbTipOffsetMm;
-  const points = [new THREE.Vector3(-3, -tip, 30), new THREE.Vector3(-1, -tip * 0.48, 31), new THREE.Vector3(0, 0, 32), new THREE.Vector3(1, tip * 0.48, 31), new THREE.Vector3(3, tip, 30)];
+  const points = [new THREE.Vector3(-3, -tip, 30), new THREE.Vector3(0, 0, 30), new THREE.Vector3(3, tip, 30)];
   const curve = new THREE.CatmullRomCurve3(points);
+  const style = part.modelStyle ?? "generic";
+  const thickness = style.includes("dacron") || style.includes("b50") ? 2.05 : style.includes("fastflight") ? 1.35 : style.includes("8125") ? 1.5 : 1.7;
   const stringMat = material(color, { metalness: 0.08, roughness: 0.24, clearcoat: 0.65 });
-  const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 90, 1.65, 8, false), stringMat); group.add(line);
-  const serving = material("#a990c5", { metalness: 0.22, roughness: 0.58 });
-  const centre = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 100, 12), serving); centre.position.set(0, 1, 31); group.add(centre);
+  const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 2, thickness, 8, false), stringMat); group.add(line);
+  const serving = material(style.includes("dacron") ? "#f0ece4" : style.includes("b50") ? "#9a7c56" : "#29262f", { metalness: 0.22, roughness: 0.58 });
+  const centre = new THREE.Mesh(new THREE.CylinderGeometry(thickness + 1.4, thickness + 1.4, style.includes("652x") ? 118 : 104, 12), serving); centre.position.set(0, 1, 31); group.add(centre);
+  if (style.includes("8125") || style.includes("fastflight")) {
+    for (const offset of [-2.6, 2.6]) {
+      const strand = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(point => point.clone().add(new THREE.Vector3(offset, 0, -1)))), 2, 0.65, 6, false), material("#91879a", { metalness: 0.12, roughness: 0.4 }));
+      group.add(strand);
+    }
+  }
   addBox(group, [37, 5, 20], [42, -6, 40], material("#d9d4df", { metalness: 0.62, roughness: 0.25 }));
   addBox(group, [4, 28, 6], [27, 4, 44], material("#17141d", { metalness: 0.55, roughness: 0.32 }));
   const nock = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), material("#f3c96e", { metalness: 0.18, roughness: 0.3 })); nock.position.set(0, 0, 35); group.add(nock);
@@ -181,31 +247,65 @@ function makeString(group, dimensions, color) {
 function rodLength(product, fallback) {
   const selected = Number(product?.rodLengthInches);
   if (Number.isFinite(selected) && selected > 0) return selected * 25.4;
-  const match = String(product?.dimensions ?? product?.label ?? "").match(/\b(10|11|12|26|28|30)\s*[″"']/);
+  const match = String(product?.dimensions ?? product?.label ?? "").match(/\b(3|4|5|6|10|11|12|26|28|30)\s*[″"']/);
   return (Number(match?.[1]) || fallback) * 25.4;
+}
+function makeStyledRod(group, start, end, part, radius, mat, tipRadius = radius) {
+  const style = part?.modelStyle ?? "generic";
+  const dimensions = ({ "xforce-3k": [1.02, 3], "sonix-carbon": [1.1, 2], "firefly-3k": [0.92, 1], "hmc-plus": [1.16, 4], "smc-damped": [1.12, 5], "firefly-extender": [0.92, 1], "sonix-extender": [1.08, 2], "xforce-extender": [1.02, 3], "hmc-extender": [1.16, 4] })[style] ?? [1, 1];
+  const rod = addRod(group, start, end, radius * dimensions[0], mat, tipRadius * dimensions[0]);
+  const from = v3(start), to = v3(end), axis = to.clone().sub(from), length = axis.length();
+  if (length > 32) {
+    const direction = axis.normalize();
+    const accent = material("#a69bad", { metalness: 0.8, roughness: 0.24 });
+    for (let index = 0; index < dimensions[1]; index++) {
+      const t = (index + 1) / (dimensions[1] + 1);
+      const collar = new THREE.Mesh(new THREE.CylinderGeometry(radius * dimensions[0] * 1.14, radius * dimensions[0] * 1.14, 2.4, 18), accent);
+      collar.position.copy(from.clone().addScaledVector(direction, length * t));
+      collar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+      collar.castShadow = true; group.add(collar);
+    }
+  }
+  return rod;
 }
 function makeStabilization(group, selectedAccessories, colors) {
   const carbon = material(safeColor(colors.longRod, DEFAULTS.longRod), { metalness: 0.68, roughness: 0.23, clearcoat: 0.38 });
   const shortCarbon = material(safeColor(colors.shortRod, DEFAULTS.shortRod), { metalness: 0.68, roughness: 0.23, clearcoat: 0.38 });
+  const extenderCarbon = material(safeColor(colors.extender, DEFAULTS.longRod), { metalness: 0.68, roughness: 0.22, clearcoat: 0.4 });
   const hardware = material(safeColor(colors.vbar, DEFAULTS.vbar), { metalness: 0.78, roughness: 0.2 });
-  const hub = material("#34303b", { metalness: 0.72, roughness: 0.28 });
+  const vbarStyle = selectedAccessories.vbar?.modelStyle ?? "generic";
+  const hub = material(vbarStyle === "cxa-vbar" ? "#27272d" : vbarStyle === "smc-vbar" ? "#262a30" : "#34303b", { metalness: 0.72, roughness: 0.28 });
   const long = selectedAccessories.longRod;
   const longMm = rodLength(long, 28);
+  const extenderMm = rodLength(selectedAccessories.extender, 4);
+  const junctionZ = 78 + extenderMm;
   addCylinder(group, 9, 32, [1, -24, 66], hardware, "z");
-  addRod(group, [1, -24, 78], [1, -24, 78 + longMm], 8, carbon, 6);
-  addCylinder(group, 13, 36, [1, -24, 78 + longMm], hub, "z");
-  addCylinder(group, 14, 32, [1, -24, 91 + longMm], hardware, "z");
+  makeStyledRod(group, [1, -24, 78], [1, -24, junctionZ], selectedAccessories.extender, 7, extenderCarbon, 6);
+  addCylinder(group, 11, 15, [1, -24, 83], hardware, "z");
+  addCylinder(group, 12, 17, [1, -24, junctionZ - 3], hardware, "z");
+  makeStyledRod(group, [1, -24, junctionZ], [1, -24, junctionZ + longMm], long, 8, carbon, 6);
+  addCylinder(group, 13, 36, [1, -24, junctionZ + longMm], hub, "z");
+  addCylinder(group, 14, 32, [1, -24, junctionZ + longMm + 13], hardware, "z");
   const shortMm = rodLength(selectedAccessories.shortRod, 10);
   const vbar = selectedAccessories.vbar;
   const angleMatch = String(vbar?.dimensions ?? "").match(/\b(40|45)\s*°/);
   const vbarAngle = THREE.MathUtils.degToRad(Number(vbar?.previewAngleDegrees ?? angleMatch?.[1] ?? 40));
-  const hubPos = [0, -39, 49];
+  const hubPos = [0, -39, junctionZ - 8];
   addBox(group, [46, 18, 24], hubPos, hub);
-  addCylinder(group, 12, 25, [0, -39, 62], hardware, "z");
+  addCylinder(group, 12, 25, [0, -39, junctionZ + 5], hardware, "z");
+  if (vbarStyle === "adjustable-vbar") {
+    addCylinder(group, 9, 12, [0, -39, junctionZ + 18], hardware, "z");
+    addBox(group, [36, 6, 20], [0, -29, junctionZ + 6], hardware);
+  } else if (vbarStyle === "smc-vbar") {
+    addBox(group, [40, 7, 30], [0, -40, junctionZ - 10], carbon);
+  } else if (vbarStyle === "cxa-vbar") {
+    addBox(group, [54, 8, 15], [0, -39, junctionZ - 12], hub);
+    for (const side of [-1, 1]) addCylinder(group, 5, 8, [side * 20, -39, junctionZ - 3], hardware, "z");
+  }
   for (const side of [-1, 1]) {
-    const start = [side * 15, -39, 44];
-    const end = [side * (shortMm * Math.cos(vbarAngle)), -39, 44 - shortMm * Math.sin(vbarAngle)];
-    addRod(group, start, end, 7.2, shortCarbon, 5.5);
+    const start = [side * 15, -39, junctionZ];
+    const end = [side * (shortMm * Math.cos(vbarAngle)), -39, junctionZ - shortMm * Math.sin(vbarAngle)];
+    makeStyledRod(group, start, end, selectedAccessories.shortRod, 7.2, shortCarbon, 5.5);
     addCylinder(group, 10, 23, end, hub, "x");
     addCylinder(group, 11, 22, [end[0] + side * 7, end[1], end[2]], hardware, "x");
   }
@@ -291,24 +391,24 @@ export function createBowRenderer(canvas) {
     if (signature !== next) {
       COMPONENTS.forEach(key => disposeChildren(groups[key]));
       Object.values(importedGroups).forEach(disposeChildren);
-      makeRiser(groups.riser, dimensions.riserLengthMm, safeColor(colors.riser, DEFAULTS.riser));
-      makeLimbs(groups.limbs, dimensions, safeColor(colors.limbs, DEFAULTS.limbs));
-      makeSight(groups.sight, handedness, safeColor(colors.sight, DEFAULTS.sight));
-      makeString(groups.string, dimensions, safeColor(colors.string, DEFAULTS.string));
+      makeRiser(groups.riser, dimensions.riserLengthMm, safeColor(colors.riser, DEFAULTS.riser), selection.riserPart);
+      makeLimbs(groups.limbs, dimensions, safeColor(colors.limbs, DEFAULTS.limbs), selection.limbsPart);
+      makeSight(groups.sight, handedness, safeColor(colors.sight, DEFAULTS.sight), selection.sightPart);
+      makeString(groups.string, dimensions, safeColor(colors.string, DEFAULTS.string), selection.stringPart);
       makeStabilization(groups.accessories, selectedAccessories, colors);
       const importedKinds = new Set(importedParts.map(part => part.modelKind));
       for (const part of importedParts) {
         const kind = part.modelKind, color = part.color ?? (kind in DEFAULTS ? DEFAULTS[kind] : "#8a8491");
-        if (kind === "riser") makeRiser(importedGroups.riser, dimensions.riserLengthMm, color);
-        else if (kind === "limbs") makeLimbs(importedGroups.limbs, dimensions, color);
-        else if (kind === "sight") makeSight(importedGroups.sight, part.handedness ?? handedness, color);
-        else if (kind === "string") makeString(importedGroups.string, dimensions, color);
+        if (kind === "riser") makeRiser(importedGroups.riser, dimensions.riserLengthMm, color, part);
+        else if (kind === "limbs") makeLimbs(importedGroups.limbs, dimensions, color, part);
+        else if (kind === "sight") makeSight(importedGroups.sight, part.handedness ?? handedness, color, part);
+        else if (kind === "string") makeString(importedGroups.string, dimensions, color, part);
         else if (part.modelable) makeImportedAccessory(importedGroups.accessories, part);
       }
       for (const key of COMPONENTS.slice(0, 4)) groups[key].visible = visible[key] && !importedKinds.has(key);
       groups.accessories.visible = visible.accessories;
       for (const key of IMPORTED_COMPONENTS) importedGroups[key].visible = key === "accessories" ? visible.accessories : visible[key];
-      const rodDepth = rodLength(selectedAccessories.longRod, 28) + 180;
+      const rodDepth = rodLength(selectedAccessories.longRod, 28) + rodLength(selectedAccessories.extender, 4) + 180;
       signature = next;
       const distance = dimensions.bowLengthMm * 1.72 + rodDepth * 0.32;
       camera.position.set(dimensions.bowLengthMm * 0.82, dimensions.bowLengthMm * 0.11, distance);

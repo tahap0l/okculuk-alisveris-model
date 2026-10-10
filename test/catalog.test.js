@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateTotal, evaluateCompatibility, initialSelection, partCatalog, selectedPart, partMeta } from "../src/catalog.js";
+import { calculateTotal, evaluateCompatibility, getPartCompatibility, initialSelection, partCatalog, selectedPart, partMeta } from "../src/catalog.js";
 
 test("default Navek setup has matching ILF standards and a complete Olympic bow", () => {
   assert.equal(evaluateCompatibility(initialSelection).compatible, true);
-  assert.deepEqual(Object.keys(initialSelection), ["riser", "limbs", "sight", "longRod", "shortRod", "vbar", "string"]);
+  assert.deepEqual(Object.keys(initialSelection), ["riser", "limbs", "sight", "longRod", "shortRod", "extender", "vbar", "string"]);
   assert.deepEqual(Object.keys(partMeta), Object.keys(initialSelection));
 });
 
@@ -12,6 +12,15 @@ test("known ILF limbs are only confirmed with ILF risers", () => {
   assert.equal(evaluateCompatibility({ ...initialSelection, riser: "kinetic-lancer-two-tone-25", limbs: "wns-explore-w1" }).compatible, true);
   assert.equal(evaluateCompatibility({ ...initialSelection, riser: "core-astral-25", limbs: "wns-explore-w1" }).compatible, null);
   assert.equal(evaluateCompatibility({ ...initialSelection, riser: "kinetic-lancer-two-tone-25", limbs: "kinetic-invelta-plus" }).compatible, null);
+});
+
+test("Formula risers only accept Formula limbs and incompatible choices are marked", () => {
+  const formulaSetup = { ...initialSelection, riser: "hoyt-formula-sr-25", limbs: "hoyt-formula-metrix-foam" };
+  assert.equal(evaluateCompatibility(formulaSetup).compatible, true);
+  assert.equal(getPartCompatibility(formulaSetup, "limbs", "wns-explore-w1").compatible, false);
+  assert.equal(getPartCompatibility(formulaSetup, "limbs", "hoyt-formula-metrix-wood").compatible, true);
+  assert.equal(getPartCompatibility({ ...initialSelection, riser: "kinetic-lancer-two-tone-25" }, "limbs", "hoyt-formula-metrix-foam").compatible, false);
+  assert.equal(evaluateCompatibility({ ...formulaSetup, handedness: "left" }).compatible, false);
 });
 
 test("total sums every selected priced part and treats unverified prices as zero", () => {
@@ -29,16 +38,23 @@ test("expanded Navek categories have product links and distinguish preview color
     assert.ok(partCatalog[category].length >= 3, `${category} has enough choices`);
     for (const part of partCatalog[category]) {
       assert.ok(part.source.startsWith("https://www.naveksport.com.tr/"));
-      assert.equal(part.colorOptionsVerified, false);
+      assert.equal(typeof part.colorOptionsVerified, "boolean");
       assert.ok(part.colors.length > 0);
       assert.ok(part.price >= 0);
     }
   }
 });
 
+test("every listed product has its own 3D style and color preview", () => {
+  for (const [category, parts] of Object.entries(partCatalog)) {
+    assert.equal(new Set(parts.map(part => part.modelStyle)).size, parts.length, `${category} products have distinct model styles`);
+    for (const part of parts) assert.ok(part.colorOptionsVerified || part.colors.length >= 2, `${part.label} has multiple render colors`);
+  }
+});
+
 test("long and short rod length controls are separate model-only variants", () => {
-  for (const [category, expected] of [["longRod", [26, 28, 30]], ["shortRod", [10, 11, 12]]]) {
+  for (const [category, expected] of [["longRod", [26, 28, 30]], ["shortRod", [10, 11, 12]], ["extender", [3, 4, 5]]]) {
     assert.deepEqual(partCatalog[category][0].rodLengths, expected);
-    assert.equal(partCatalog[category][0].rodLengthInches, expected[0] === 26 ? 28 : 10);
+    assert.equal(partCatalog[category][0].rodLengthInches, expected[0] === 26 ? 28 : expected[0] === 3 ? 4 : 10);
   }
 });

@@ -37,4 +37,3 @@ test("basket parser distinguishes mounted accessories from products kept outside
   assert.equal(unknown.modelKind, "unmapped");
   assert.equal(unknown.unitPrice, 100);
 });
-
