@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js";
+import { calculateModelDimensions, getRiserLengthInches } from "./modeling.js?v=3d-model-1";
 
 const DEFAULTS = { riser: "#7752b2", limbs: "#d9d4de", sight: "#262332", string: "#af486d" };
 const COMPONENTS = ["riser", "limbs", "sight", "string"];

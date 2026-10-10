@@ -1,5 +1,5 @@
-import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, calculateTotal } from "./catalog.js";
-import { createBowRenderer } from "./renderer.js";
+import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, calculateTotal } from "./catalog.js?v=3d-model-1";
+import { createBowRenderer } from "./renderer.js?v=3d-model-1";
 
 const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
