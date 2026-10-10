@@ -77,7 +77,7 @@ async function importBasketFile(file){
   if(!file)return;
   $("pdfImportStatus").textContent="Sepet PDF’si tarayıcıda okunuyor…";
   try{
-    const {extractNavekBasket}=await import("./pdf-import.js?v=pdf-model-2");
+    const {extractNavekBasket}=await import("./pdf-import.js?v=pdf-model-3");
     importedParts=(await extractNavekBasket(file)).map(part=>({...part,modelEnabled:part.modelable}));
     const pdfBowLength=importedParts.find(part=>part.modelKind==="limbs"&&[66,68,70].includes(part.bowLengthInches))?.bowLengthInches;
     if(pdfBowLength){bowLengthInches=pdfBowLength;$("bowLength").value=String(pdfBowLength);}
@@ -116,4 +116,3 @@ $("copySummary").addEventListener("click",async()=>{try{await navigator.clipboar
 function readHash(){const params=new URLSearchParams(location.hash.slice(1));for(const category of Object.keys(partCatalog))if(partCatalog[category].some(part=>part.id===params.get(category)))selection[category]=params.get(category);for(const category of Object.keys(colors))if(params.has(`color-${category}`)&&/^#[\da-f]{6}$/i.test(params.get(`color-${category}`)))colors[category]=params.get(`color-${category}`);if([66,68,70].includes(Number(params.get("bowLength"))))bowLengthInches=Number(params.get("bowLength"));if(["left","right"].includes(params.get("hand")))handedness=params.get("hand");$("bowLength").value=String(bowLengthInches);$("handedness").value=handedness;}
 readHash();
 update();
-

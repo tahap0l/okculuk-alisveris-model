@@ -131,7 +131,7 @@ export async function extractNavekBasket(file) {
   const loadingTask = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
   const pdf = await loadingTask.promise;
   if (pdf.numPages > 30) {
-    await pdf.destroy();
+    await loadingTask.destroy();
     throw new Error("Sepet PDF'si en fazla 30 sayfa olabilir.");
   }
   const lines = [];
@@ -139,9 +139,8 @@ export async function extractNavekBasket(file) {
     const page = await pdf.getPage(pageNumber);
     lines.push(...groupPdfTextLines((await page.getTextContent()).items));
   }
-  await pdf.destroy();
+  await loadingTask.destroy();
   const products = parseBasketLines(lines);
   if (!products.length) throw new Error("PDF içinde okunabilir ürün satırı bulunamadı. Tarama görüntüsü olan PDF'leri henüz okuyamıyorum.");
   return products;
 }
-
