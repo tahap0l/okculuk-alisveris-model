@@ -1,9 +1,21 @@
-import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, getPartCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-6";
-import { createBowRenderer } from "./renderer.js?v=navek-3d-6";
+import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, getPartCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-7";
+import { createBowRenderer } from "./renderer.js?v=navek-3d-7";
 
 const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
-const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik", "#ded9e7":"Ay gümüşü", "#ece5f4":"İnci", "#9b8cae":"Lila metal", "#bd4b75":"Ahududu" };
+const colorNames = { "#7752b2":"Gece moru", "#d9d4de":"Ay gümüşü", "#262332":"Grafit", "#af486d":"Ahududu", "#25222d":"Grafit", "#55328c":"Erik", "#c4bdcc":"Sis", "#805a3e":"Ceviz", "#ba78eb":"Orkide", "#28242e":"Grafit", "#7652b2":"Erik", "#ded9e7":"Ay gümüşü", "#ece5f4":"İnci", "#9b8cae":"Lila metal", "#bd4b75":"Ahududu", "#28272b":"Grafit", "#c6a97e":"Akçaağaç", "#1c1e24":"Karbon siyahı", "#8a8d96":"Gümüş", "#f4f0e8":"İnci", "#f4f1e9":"Beyaz", "#376992":"Mavi", "#bd3948":"Kırmızı", "#8e929c":"Gri" };
+function previewColorName(color) {
+  if (colorNames[color]) return colorNames[color];
+  const [red,green,blue]=color.match(/[\da-f]{2}/gi).map(channel=>parseInt(channel,16));
+  const maximum=Math.max(red,green,blue), minimum=Math.min(red,green,blue);
+  if (maximum<70) return "Grafit";
+  if (maximum-minimum<22) return maximum>180?"Gümüş":"Gri metal";
+  if (red>green*1.3&&red>blue*1.25) return "Kırmızı";
+  if (blue>red*1.12&&blue>green*1.05) return red>green*1.08?"Mor":"Mavi";
+  if (green>red*1.12&&green>blue*1.05) return "Yeşil";
+  if (red>green*1.05&&green>blue*1.08) return "Ahşap";
+  return "Model rengi";
+}
 let bowLengthInches = 68, handedness = "right", viewer = null, toastTimer, importedParts = [];
 const rodLengths = { longRod: 28, shortRod: 10, extender: 4 };
 const formatPrice = price => new Intl.NumberFormat("tr-TR", { style:"currency", currency:"TRY", minimumFractionDigits:2, maximumFractionDigits:2 }).format(price);
@@ -19,7 +31,7 @@ try {
 function renderControls() {
   $("partList").innerHTML = Object.entries(partMeta).map(([category, meta]) => {
     const part = selectedPart(selection, category);
-    const swatches = part.colors.map((color,index) => {const name=part.colorLabels?.[index]??colorNames[color]??"Model rengi";return `<button class="color-option ${colors[category]===color?"selected":""}" type="button" style="background:${color}" title="${name}" aria-label="${meta.title}: ${name}" aria-pressed="${colors[category]===color}" data-color-category="${category}" data-color="${color}"></button>`;}).join("");
+    const swatches = part.colors.map((color,index) => {const name=part.colorLabels?.[index]??previewColorName(color);return `<button class="color-option ${colors[category]===color?"selected":""}" type="button" style="background:${color}" title="${name}" aria-label="${meta.title}: ${name}" aria-pressed="${colors[category]===color}" data-color-category="${category}" data-color="${color}"></button>`;}).join("");
     const preview = part.colors.length ? `<div class="color-row" aria-label="${meta.title} ürün renkleri"><span class="part-meta">Renk / önizleme</span>${swatches}<span class="part-meta">${part.colorOptionsVerified?"Navek varyantı":"Yalnızca model rengi"}</span></div>` : `<div class="color-row"><span class="part-meta">Renk seçeneği doğrulanmadı</span></div>`;
     const rodVariant = part.rodLengths?.length ? `<label class="variant-control">${category==="extender"?"Extender boyu":"Önizleme boyu"}<select aria-label="${meta.title} uzunluğu" data-rod-category="${category}">${part.rodLengths.map(length=>`<option value="${length}" ${rodLengths[category]===length?"selected":""}>${length} inç</option>`).join("")}</select><small>Model uzunluğu · fiyat/mağaza varyantını ayrıca kontrol et</small></label>` : "";
     const currentSetup={...selection,handedness};
@@ -39,7 +51,9 @@ function update() {
   statusEl.className=`compatibility ${status.level}`;
   statusEl.innerHTML=`<span class="check" aria-hidden="true">${status.compatible===true?"✓":"!"}</span><span><strong>${status.label}</strong><br>${status.detail}</span>`;
   $("totalPrice").textContent=formatPrice(calculateTotal(selection));
-  $("colorLabel").textContent=`Görsel önizleme · ${colorNames[colors.riser]??"özel renk"}`;
+  const selectedRiser=selectedPart(selection,"riser"), riserColorIndex=selectedRiser.colors.indexOf(colors.riser);
+  const riserColorName=selectedRiser.colorLabels?.[riserColorIndex]??previewColorName(colors.riser);
+  $("colorLabel").textContent=`${selectedRiser.colorOptionsVerified?"Ürün rengi":"Görsel önizleme"} · ${riserColorName}`;
   $("canvasBadge").innerHTML=`OLİMPİK YAY <span>·</span> ${handedness === "right" ? "SAĞ EL" : "SOL EL"}`;
   if (viewer) {
     const importedForModel=importedParts.filter(part=>part.modelEnabled&&part.modelable);
