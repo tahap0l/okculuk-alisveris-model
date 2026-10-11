@@ -32,8 +32,8 @@ export function getStringNockDepthMm(drawMm = 0) {
 export function getLimbDrawDeflectionMm(t, drawMm = 0) {
   const progress = Math.min(1, Math.max(0, Number(t) || 0));
   const pull = Math.max(0, Number(drawMm) || 0);
-  const smoothTipLoad = progress * progress * (3 - 2 * progress);
-  return pull * (0.2 * Math.sin(Math.PI * progress) - 0.12 * smoothTipLoad);
+  const cantileverLoad = progress * progress * (3 - progress) / 2;
+  return pull === 0 || progress === 0 ? 0 : -pull * 0.12 * cantileverLoad;
 }
 
 export function getLimbBendDepthMm(t, style = "generic", drawMm = 0) {

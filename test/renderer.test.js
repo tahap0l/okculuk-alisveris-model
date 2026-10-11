@@ -54,12 +54,12 @@ test("drawing the string moves its nock backward while limb tips stay attached",
   assert.ok(Math.abs(getLimbBendDepthMm(1, "generic", draw) - getStringTipOffsetMm(draw)) < 1e-9);
 });
 
-test("limb draw mechanics hold the root, flex the working limb forward and pull tips back", () => {
+test("limb draw mechanics hold the root and flex the working limb toward the archer", () => {
   const draw = 24 * MILLIMETERS_PER_INCH;
   assert.equal(getLimbDrawDeflectionMm(0, draw), 0);
-  assert.ok(getLimbDrawDeflectionMm(0.5, draw) > 0, "the working limb flexes toward the target side");
-  assert.ok(getLimbDrawDeflectionMm(1, draw) < 0, "the limb tip tracks backward with the string");
-  assert.ok(getLimbDrawDeflectionMm(0.5, draw) > getLimbDrawDeflectionMm(0.5, draw / 2));
+  assert.ok(getLimbDrawDeflectionMm(0.5, draw) < 0, "the working limb flexes toward the archer side");
+  assert.ok(getLimbDrawDeflectionMm(1, draw) < getLimbDrawDeflectionMm(0.5, draw), "limb-tip deflection follows the backward-moving string");
+  assert.ok(getLimbDrawDeflectionMm(0.5, draw) < getLimbDrawDeflectionMm(0.5, draw / 2));
   assert.ok(getLimbDrawDeflectionMm(1, draw) < getLimbDrawDeflectionMm(1, draw / 2));
 });
 
