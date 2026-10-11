@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getLimbBendDepthMm, getRiserDesign, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-12";
+import { calculateModelDimensions, getLimbBendDepthMm, getRiserDesign, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-13";
 
 const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", extender: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
