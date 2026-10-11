@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm, MILLIMETERS_PER_INCH, STRING_BRACE_HEIGHT_MM } from "../src/modeling.js";
+import { calculateModelDimensions, getLimbBendDepthMm, getLimbDrawDeflectionMm, getRiserDesign, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm, MILLIMETERS_PER_INCH, STRING_BRACE_HEIGHT_MM } from "../src/modeling.js";
 
 test("selected bow length and riser produce correctly scaled millimeter dimensions", () => {
   const dimensions = calculateModelDimensions(25, 68);
@@ -52,4 +52,27 @@ test("drawing the string moves its nock backward while limb tips stay attached",
   assert.ok(getStringNockDepthMm(draw) < getStringNockDepthMm(0));
   assert.ok(getStringTipOffsetMm(draw) < getStringTipOffsetMm(0));
   assert.ok(Math.abs(getLimbBendDepthMm(1, "generic", draw) - getStringTipOffsetMm(draw)) < 1e-9);
+});
+
+test("limb draw mechanics hold the root, flex the working limb forward and pull tips back", () => {
+  const draw = 24 * MILLIMETERS_PER_INCH;
+  assert.equal(getLimbDrawDeflectionMm(0, draw), 0);
+  assert.ok(getLimbDrawDeflectionMm(0.5, draw) > 0, "the working limb flexes toward the target side");
+  assert.ok(getLimbDrawDeflectionMm(1, draw) < 0, "the limb tip tracks backward with the string");
+  assert.ok(getLimbDrawDeflectionMm(0.5, draw) > getLimbDrawDeflectionMm(0.5, draw / 2));
+  assert.ok(getLimbDrawDeflectionMm(1, draw) < getLimbDrawDeflectionMm(1, draw / 2));
+});
+
+test("Navek riser models have distinct dimensional and machining profiles", () => {
+  const styles = ["astral-cast", "evolium-compact", "scopus-cnc", "lancer-cast", "lancer-two-tone", "sovren-cnc", "alfa-cutout-23", "alfa-cutout-25", "atf-dx-damped", "winex-angular", "formula-offset"];
+  const signatures = styles.map(style => {
+    const design = getRiserDesign(style);
+    assert.ok(design.sightWindowWidthMm > 0, `${style} keeps a real sight window`);
+    assert.ok(design.bodyWidthScale > 0 && design.bodyDepthScale > 0);
+    return JSON.stringify(design);
+  });
+  assert.equal(new Set(signatures).size, styles.length, "each catalog body gets its own geometric recipe");
+  assert.ok(getRiserDesign("evolium-compact").sightWindowWidthMm < getRiserDesign("alfa-cutout-25").sightWindowWidthMm);
+  assert.equal(getRiserDesign("atf-dx-damped").damperCount, 3);
+  assert.equal(getRiserDesign("formula-offset").mountStyle, "Formula");
 });

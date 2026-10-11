@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-11";
+import { calculateModelDimensions, getLimbBendDepthMm, getRiserDesign, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-12";
 
 const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", extender: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
@@ -42,25 +42,36 @@ function addRod(group, start, end, radius, mat, tipRadius = radius) {
 
 function makeRiser(group, lengthMm, color, part = {}) {
   const style = part.modelStyle ?? "generic";
-  const profile = ({
-    "astral-cast": [0.95, 0.96], "evolium-compact": [0.82, 0.86], "scopus-cnc": [1.08, 0.94], "lancer-cast": [0.99, 1.02],
-    "lancer-two-tone": [1.02, 1.00], "sovren-cnc": [1.12, 0.92], "alfa-cutout-23": [1.12, 0.92], "alfa-cutout-25": [1.18, 0.9], "atf-dx-damped": [1.06, 1.05],
-    "winex-angular": [0.93, 1.1], "formula-offset": [1.18, 0.94]
-  })[style] ?? [1, 1];
+  const design = getRiserDesign(style);
+  const profile = [design.bodyWidthScale, design.bodyDepthScale];
   const half = lengthMm / 2;
+  const sweep = design.sideSweepMm;
+  const angular = design.edgeStyle.includes("cnc") || design.edgeStyle.includes("angular") || design.edgeStyle === "extruded-cnc";
   const outline = new THREE.Shape();
   outline.moveTo(-25, -half + 30);
   outline.quadraticCurveTo(-20, -half + 12, 6, -half + 8);
   outline.lineTo(25, -half + 4);
   outline.quadraticCurveTo(34, -half + 10, 31, -half + 38);
-  outline.lineTo(20, -170);
-  outline.quadraticCurveTo(15, -96, 36, -55);
-  outline.lineTo(50, -31);
-  outline.quadraticCurveTo(57, -18, 48, -9);
-  outline.quadraticCurveTo(41, 0, 48, 9);
-  outline.quadraticCurveTo(57, 18, 50, 31);
-  outline.lineTo(36, 55);
-  outline.quadraticCurveTo(15, 96, 20, 170);
+  outline.lineTo(20 + sweep * 0.35, -170);
+  if (angular) {
+    outline.lineTo(18 + sweep * 0.25, -112);
+    outline.lineTo(34 + sweep * 0.5, -57);
+    outline.lineTo(50 + sweep, -31);
+    outline.lineTo(56 + sweep, -14);
+    outline.lineTo(46 + sweep * 0.55, -3);
+    outline.lineTo(57 + sweep, 18);
+    outline.lineTo(50 + sweep, 31);
+    outline.lineTo(34 + sweep * 0.5, 57);
+    outline.lineTo(18 + sweep * 0.25, 112);
+  } else {
+    outline.quadraticCurveTo(15 + sweep * 0.25, -96, 36 + sweep * 0.5, -55);
+    outline.lineTo(50 + sweep, -31);
+    outline.quadraticCurveTo(57 + sweep, -18, 48 + sweep * 0.55, -9);
+    outline.quadraticCurveTo(41 + sweep * 0.5, 0, 48 + sweep * 0.55, 9);
+    outline.quadraticCurveTo(57 + sweep, 18, 50 + sweep, 31);
+    outline.lineTo(36 + sweep * 0.5, 55);
+    outline.quadraticCurveTo(15 + sweep * 0.25, 96, 20 + sweep * 0.35, 170);
+  }
   outline.lineTo(31, half - 38);
   outline.quadraticCurveTo(34, half - 10, 25, half - 4);
   outline.lineTo(6, half - 8);
@@ -68,6 +79,21 @@ function makeRiser(group, lengthMm, color, part = {}) {
   outline.lineTo(-19, 78);
   outline.quadraticCurveTo(-16, 0, -19, -78);
   outline.closePath();
+  const halfWindow = design.sightWindowWidthMm / 2;
+  const windowBottom = 120 - design.sightWindowHeightMm / 2;
+  const windowTop = 120 + design.sightWindowHeightMm / 2;
+  const window = new THREE.Path();
+  window.moveTo(-halfWindow + 5, windowBottom);
+  window.lineTo(halfWindow - 5, windowBottom);
+  window.quadraticCurveTo(halfWindow, windowBottom, halfWindow, windowBottom + 5);
+  window.lineTo(halfWindow, windowTop - 5);
+  window.quadraticCurveTo(halfWindow, windowTop, halfWindow - 5, windowTop);
+  window.lineTo(-halfWindow + 5, windowTop);
+  window.quadraticCurveTo(-halfWindow, windowTop, -halfWindow, windowTop - 5);
+  window.lineTo(-halfWindow, windowBottom + 5);
+  window.quadraticCurveTo(-halfWindow, windowBottom, -halfWindow + 5, windowBottom);
+  window.closePath();
+  outline.holes.push(window);
   const shape = new THREE.ExtrudeGeometry(outline, { depth: 66, bevelEnabled: true, bevelSegments: 4, steps: 1, bevelSize: 4, bevelThickness: 4, curveSegments: 16 });
   shape.translate(0, 0, -33);
   shape.scale(profile[0], 1, profile[1]);
@@ -109,14 +135,17 @@ function makeRiser(group, lengthMm, color, part = {}) {
     addBox(group, [9, lengthMm * 0.57, 3], [18, 0, 35], faceAccent);
     addBox(group, [9, lengthMm * 0.57, 3], [18, 0, -35], faceAccent);
     for (const sign of [-1, 1]) addCylinder(group, 7, 3, [0, sign * (half - 39), 37], faceAccent, "z");
-  } else if (style.includes("cnc") || style === "winex-angular") {
+  } else if (["scopus-rails", "sovren-ribs", "winex-facets"].includes(design.detailStyle)) {
     for (const sign of [-1, 1]) {
-      addBox(group, [5, 92, 3], [18, sign * 98, 35], faceAccent);
-      addCylinder(group, 6, 4, [22, sign * 112, 38], steel, "z");
+      const rail = addBox(group, [design.detailStyle === "sovren-ribs" ? 6 : 5, design.detailStyle === "sovren-ribs" ? 112 : 92, 3], [18 + sweep * 0.3, sign * (design.detailStyle === "sovren-ribs" ? 105 : 98), 35], faceAccent);
+      if (design.detailStyle === "winex-facets") rail.rotation.z = sign * -0.12;
+      addCylinder(group, 6, 4, [22 + sweep * 0.35, sign * 112, 38], steel, "z");
     }
   }
-  if (style === "atf-dx-damped") {
-    for (const y of [-90, 0, 90]) {
+  if (design.damperCount > 0) {
+    const damperStep = 180 / Math.max(1, design.damperCount - 1);
+    for (let index = 0; index < design.damperCount; index++) {
+      const y = (index - (design.damperCount - 1) / 2) * damperStep;
       addCylinder(group, 12, 5, [-8, y, 37], dark, "z");
       addCylinder(group, 5, 6, [-8, y, 41], accent, "z");
     }
