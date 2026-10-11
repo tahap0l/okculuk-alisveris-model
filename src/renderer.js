@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getRiserLengthInches, getStringTipOffsetMm, STRING_BRACE_HEIGHT_MM } from "./modeling.js?v=navek-3d-9";
+import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-10";
 
 const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", extender: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
@@ -142,7 +142,7 @@ function buildLimb(sign, dimensions, style = "generic", drawMm = 0) {
   const sample = t => ({
     y: sign * (dimensions.riserLengthMm / 2 - 4 + (dimensions.limbTipOffsetMm - dimensions.riserLengthMm / 2) * t),
     x: 1 + (style.includes("formula") ? 20 : 14) * profile[2] * Math.sin(Math.PI * t) - 4 * t,
-    z: 2 + (style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102) * Math.sin(Math.PI * t) + (STRING_BRACE_HEIGHT_MM - 2) * t + drawMm * (0.12 * t + 0.11 * Math.sin(Math.PI * t)),
+    z: getLimbBendDepthMm(t, style, drawMm),
     width: THREE.MathUtils.lerp((style.includes("foam") ? 27 : style.includes("b1") ? 34 : 31) * profile[0], (style.includes("foam") ? 7.5 : 8.5) * profile[0], Math.pow(t, 0.84)),
     depth: THREE.MathUtils.lerp((style.includes("foam") ? 7 : 8.5) * profile[1], 3.3 * profile[1], t)
   });
@@ -226,22 +226,25 @@ function makeSight(group, handedness, color, part = {}) {
 function makeString(group, dimensions, color, part = {}, drawMm = 0) {
   const tip = dimensions.limbTipOffsetMm;
   const tipZ = getStringTipOffsetMm(drawMm);
-  const points = [new THREE.Vector3(-3, -tip, tipZ), new THREE.Vector3(0, 0, tipZ + drawMm), new THREE.Vector3(-3, tip, tipZ)];
-  const curve = new THREE.CatmullRomCurve3(points);
+  const upperTip = new THREE.Vector3(-3, tip, tipZ);
+  const nockPoint = new THREE.Vector3(0, 0, tipZ + drawMm);
+  const lowerTip = new THREE.Vector3(-3, -tip, tipZ);
+  const curve = new THREE.CurvePath();
+  curve.add(new THREE.QuadraticBezierCurve3(upperTip, new THREE.Vector3(-1.5, tip * 0.55, tipZ + drawMm * 0.45), nockPoint));
+  curve.add(new THREE.QuadraticBezierCurve3(nockPoint, new THREE.Vector3(-1.5, -tip * 0.55, tipZ + drawMm * 0.45), lowerTip));
   const style = part.modelStyle ?? "generic";
   const thickness = style.includes("dacron") || style.includes("b50") ? 2.05 : style.includes("fastflight") ? 1.35 : style.includes("8125") ? 1.5 : 1.7;
   const stringMat = material(color, { metalness: 0.08, roughness: 0.24, clearcoat: 0.65 });
-  const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, thickness, 8, false), stringMat); group.add(line);
+  const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 64, thickness, 8, false), stringMat); group.add(line);
   const serving = material(style.includes("dacron") ? "#f0ece4" : style.includes("b50") ? "#9a7c56" : "#29262f", { metalness: 0.22, roughness: 0.58 });
   const centre = new THREE.Mesh(new THREE.CylinderGeometry(thickness + 1.4, thickness + 1.4, style.includes("652x") ? 118 : 104, 12), serving); centre.position.set(0, 1, tipZ + drawMm * 0.76); group.add(centre);
   if (style.includes("8125") || style.includes("fastflight")) {
     for (const offset of [-2.6, 2.6]) {
-      const strand = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(point => point.clone().add(new THREE.Vector3(offset, 0, -1)))), 48, 0.65, 6, false), material("#91879a", { metalness: 0.12, roughness: 0.4 }));
+      const strandPoints = curve.getPoints(64).map(point => point.clone().add(new THREE.Vector3(offset, 0, -1)));
+      const strand = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(strandPoints), 64, 0.65, 6, false), material("#91879a", { metalness: 0.12, roughness: 0.4 }));
       group.add(strand);
     }
   }
-  addBox(group, [37, 5, 20], [42, -6, 40], material("#d9d4df", { metalness: 0.62, roughness: 0.25 }));
-  addBox(group, [4, 28, 6], [27, 4, 44], material("#17141d", { metalness: 0.55, roughness: 0.32 }));
   const nock = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), material("#f3c96e", { metalness: 0.18, roughness: 0.3 })); nock.position.set(0, 0, tipZ + drawMm); group.add(nock);
 }
 
