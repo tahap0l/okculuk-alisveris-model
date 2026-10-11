@@ -3,15 +3,19 @@ export const STRING_BRACE_HEIGHT_MM = 55;
 export const SUPPORTED_BOW_LENGTHS_INCHES = Object.freeze([66, 68, 70]);
 
 export function getStringTipOffsetMm(drawMm = 0) {
-  return STRING_BRACE_HEIGHT_MM + Math.max(0, Number(drawMm) || 0) * 0.12;
+  return -STRING_BRACE_HEIGHT_MM - Math.max(0, Number(drawMm) || 0) * 0.12;
+}
+
+export function getStringNockDepthMm(drawMm = 0) {
+  return getStringTipOffsetMm(drawMm) - Math.max(0, Number(drawMm) || 0);
 }
 
 export function getLimbBendDepthMm(t, style = "generic", drawMm = 0) {
   const progress = Math.min(1, Math.max(0, Number(t) || 0));
   const pull = Math.max(0, Number(drawMm) || 0);
   const bend = style.includes("foam") ? 112 : style.includes("bamboo") ? 94 : 102;
-  return 2 + (STRING_BRACE_HEIGHT_MM - 2) * progress - bend * Math.sin(Math.PI * progress)
-    + pull * (0.12 * progress + 0.11 * Math.sin(Math.PI * progress));
+  return 2 + (-STRING_BRACE_HEIGHT_MM - 2) * progress + bend * Math.sin(Math.PI * progress)
+    + pull * (-0.12 * progress + 0.11 * Math.sin(Math.PI * progress));
 }
 
 export function getRiserLengthInches(part) {

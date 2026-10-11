@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringTipOffsetMm, MILLIMETERS_PER_INCH, STRING_BRACE_HEIGHT_MM } from "../src/modeling.js";
+import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm, MILLIMETERS_PER_INCH, STRING_BRACE_HEIGHT_MM } from "../src/modeling.js";
 
 test("selected bow length and riser produce correctly scaled millimeter dimensions", () => {
   const dimensions = calculateModelDimensions(25, 68);
@@ -28,26 +28,28 @@ test("unsupported lengths fall back safely and riser values are bounded", () => 
 });
 
 test("both limb tips and the taut string share the same forward mounting plane", () => {
-  assert.equal(getStringTipOffsetMm(0), STRING_BRACE_HEIGHT_MM);
-  assert.ok(STRING_BRACE_HEIGHT_MM > 33, "the string clears the riser's front face");
+  assert.equal(getStringTipOffsetMm(0), -STRING_BRACE_HEIGHT_MM);
+  assert.ok(getStringTipOffsetMm(0) < -33, "the string sits on the archer side of the riser");
   for (const drawMm of [0, 12 * MILLIMETERS_PER_INCH, 24 * MILLIMETERS_PER_INCH]) {
-    assert.equal(getStringTipOffsetMm(drawMm), STRING_BRACE_HEIGHT_MM + drawMm * 0.12);
+    assert.equal(getStringTipOffsetMm(drawMm), -STRING_BRACE_HEIGHT_MM - drawMm * 0.12);
+    assert.equal(getStringNockDepthMm(drawMm), getStringTipOffsetMm(drawMm) - drawMm);
   }
 });
 
-test("limbs curve away from the string between the riser and the tips", () => {
+test("limbs curve toward the target side, away from the archer-side string", () => {
   const dimensions = calculateModelDimensions(25, 68);
   const stringPlane = getStringTipOffsetMm(0);
   for (const style of ["generic", "carbon-foam", "bamboo-laminate"]) {
-    assert.ok(getLimbBendDepthMm(0.5, style, 0) < stringPlane - 60, `${style} limb clears the string at midspan`);
+    assert.ok(getLimbBendDepthMm(0.5, style, 0) > stringPlane + 60, `${style} limb bends forward away from the string`);
     assert.ok(Math.abs(getLimbBendDepthMm(1, style, 0) - stringPlane) < 1e-9);
-    assert.ok(getLimbBendDepthMm(0.5, style, 24 * MILLIMETERS_PER_INCH) < stringPlane);
+    assert.ok(getLimbBendDepthMm(0.5, style, 24 * MILLIMETERS_PER_INCH) > stringPlane);
   }
   assert.equal(dimensions.limbTipOffsetMm, 68 * MILLIMETERS_PER_INCH / 2);
 });
 
-test("drawn string midpoint moves toward the archer side while tips stay attached", () => {
+test("drawing the string moves its nock backward while limb tips stay attached", () => {
   const draw = 24 * MILLIMETERS_PER_INCH;
-  assert.ok(getStringTipOffsetMm(draw) > getStringTipOffsetMm(0));
+  assert.ok(getStringNockDepthMm(draw) < getStringNockDepthMm(0));
+  assert.ok(getStringTipOffsetMm(draw) < getStringTipOffsetMm(0));
   assert.ok(Math.abs(getLimbBendDepthMm(1, "generic", draw) - getStringTipOffsetMm(draw)) < 1e-9);
 });

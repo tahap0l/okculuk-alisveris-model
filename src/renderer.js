@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-10";
+import { calculateModelDimensions, getLimbBendDepthMm, getRiserLengthInches, getStringNockDepthMm, getStringTipOffsetMm } from "./modeling.js?v=navek-3d-11";
 
 const DEFAULTS = { riser: "#7652b2", limbs: "#ded9e7", sight: "#28242e", string: "#ece5f4", longRod: "#28242e", shortRod: "#28242e", extender: "#28242e", vbar: "#9b8cae" };
 const COMPONENTS = ["riser", "limbs", "sight", "string", "accessories"];
@@ -227,17 +227,17 @@ function makeString(group, dimensions, color, part = {}, drawMm = 0) {
   const tip = dimensions.limbTipOffsetMm;
   const tipZ = getStringTipOffsetMm(drawMm);
   const upperTip = new THREE.Vector3(-3, tip, tipZ);
-  const nockPoint = new THREE.Vector3(0, 0, tipZ + drawMm);
+  const nockPoint = new THREE.Vector3(0, 0, getStringNockDepthMm(drawMm));
   const lowerTip = new THREE.Vector3(-3, -tip, tipZ);
   const curve = new THREE.CurvePath();
-  curve.add(new THREE.QuadraticBezierCurve3(upperTip, new THREE.Vector3(-1.5, tip * 0.55, tipZ + drawMm * 0.45), nockPoint));
-  curve.add(new THREE.QuadraticBezierCurve3(nockPoint, new THREE.Vector3(-1.5, -tip * 0.55, tipZ + drawMm * 0.45), lowerTip));
+  curve.add(new THREE.QuadraticBezierCurve3(upperTip, new THREE.Vector3(-1.5, tip * 0.55, tipZ - drawMm * 0.45), nockPoint));
+  curve.add(new THREE.QuadraticBezierCurve3(nockPoint, new THREE.Vector3(-1.5, -tip * 0.55, tipZ - drawMm * 0.45), lowerTip));
   const style = part.modelStyle ?? "generic";
   const thickness = style.includes("dacron") || style.includes("b50") ? 2.05 : style.includes("fastflight") ? 1.35 : style.includes("8125") ? 1.5 : 1.7;
   const stringMat = material(color, { metalness: 0.08, roughness: 0.24, clearcoat: 0.65 });
   const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 64, thickness, 8, false), stringMat); group.add(line);
   const serving = material(style.includes("dacron") ? "#f0ece4" : style.includes("b50") ? "#9a7c56" : "#29262f", { metalness: 0.22, roughness: 0.58 });
-  const centre = new THREE.Mesh(new THREE.CylinderGeometry(thickness + 1.4, thickness + 1.4, style.includes("652x") ? 118 : 104, 12), serving); centre.position.set(0, 1, tipZ + drawMm * 0.76); group.add(centre);
+  const centre = new THREE.Mesh(new THREE.CylinderGeometry(thickness + 1.4, thickness + 1.4, style.includes("652x") ? 118 : 104, 12), serving); centre.position.set(0, 1, tipZ - drawMm * 0.76); group.add(centre);
   if (style.includes("8125") || style.includes("fastflight")) {
     for (const offset of [-2.6, 2.6]) {
       const strandPoints = curve.getPoints(64).map(point => point.clone().add(new THREE.Vector3(offset, 0, -1)));
@@ -245,7 +245,7 @@ function makeString(group, dimensions, color, part = {}, drawMm = 0) {
       group.add(strand);
     }
   }
-  const nock = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), material("#f3c96e", { metalness: 0.18, roughness: 0.3 })); nock.position.set(0, 0, tipZ + drawMm); group.add(nock);
+  const nock = new THREE.Mesh(new THREE.SphereGeometry(5, 16, 12), material("#f3c96e", { metalness: 0.18, roughness: 0.3 })); nock.position.set(0, 0, getStringNockDepthMm(drawMm)); group.add(nock);
 }
 
 function makeClicker(group, part = {}, handedness = "right") {

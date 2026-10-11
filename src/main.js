@@ -1,5 +1,5 @@
-import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, getPartCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-10";
-import { createBowRenderer } from "./renderer.js?v=navek-3d-10";
+import { partCatalog, partMeta, initialSelection, initialColors, selectedPart, evaluateCompatibility, getPartCompatibility, calculateTotal } from "./catalog.js?v=navek-3d-11";
+import { createBowRenderer } from "./renderer.js?v=navek-3d-11";
 
 const $ = id => document.getElementById(id);
 const selection = { ...initialSelection }, colors = { ...initialColors };
